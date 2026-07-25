@@ -534,7 +534,7 @@ const COMPANY_INFO = {
     website: 'arazelectron.com',
     email: 'info@arazelectron.com',
     phone: '+994514280906',
-    footerNote: 'Batareya və Hard Diskə zəmanət verilmir.',
+    footerNote: 'Blokbitaniya və Hard Diskə zəmanət verilmir.',
     stampSrc: './mohur.png'
 };
 
