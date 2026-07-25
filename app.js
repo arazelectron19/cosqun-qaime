@@ -15,7 +15,7 @@ import {
 
 // 2. Service Worker qeydiyyatı
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js', { scope: '/cosqun.qaime/' })
+    navigator.serviceWorker.register('./sw.js', { scope: '/cosqun-qaime/' })
         .then(() => console.log("Service Worker aktivləşdirildi."))
         .catch(err => console.error("SW qeydiyyat xətası:", err));
 }
