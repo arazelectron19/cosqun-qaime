@@ -78,7 +78,8 @@ const btnSharePdf = document.getElementById('btn-share-pdf');
 
 let invoiceItems = [{ name: '', qty: 1, price: 0 }];
 let currentActiveDocId = null;
-let dbProductsList = []; // Bazadan gələn sürətli məhsullar bura yığılacaq
+let dbProductsList = []; 
+let allWaitingInvoices = []; // Bütün gözləyən qaimələri saxlamaq üçün
 
 document.addEventListener('DOMContentLoaded', () => {
     renderItems();
@@ -109,6 +110,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    const waitingSearchInput = document.getElementById('waiting-search-input');
+if (waitingSearchInput) {
+    waitingSearchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const filtered = allWaitingInvoices.filter(item => 
+            item.customerName.toLowerCase().includes(searchTerm)
+        );
+        renderWaitingList(filtered);
+    });
+}
 });
 
 function setTodayDate() {
@@ -320,99 +332,106 @@ async function fetchWaitingList() {
             where("status", "==", "waiting")
         );
         const snap = await getDocs(q);
-        waitingListContainer.innerHTML = '';
-
-        if(snap.empty) {
-            waitingListContainer.innerHTML = '<p style="font-size:12px; color:#9ca3af; text-align:center;">Gözləyən iş yoxdur.</p>';
-            return;
-        }
-
-        const docsArray = [];
+        
+        allWaitingInvoices = [];
         snap.forEach(docSnap => {
-            docsArray.push({ id: docSnap.id, ...docSnap.data() });
+            allWaitingInvoices.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        docsArray.sort((a, b) => {
+        allWaitingInvoices.sort((a, b) => {
             const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : new Date(a.updatedAt).getTime();
             const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate().getTime() : new Date(b.updatedAt).getTime();
             return timeB - timeA;
         });
 
-        docsArray.forEach((data) => {
-            const docId = data.id;
-            const formattedDate = formatDate(data.updatedAt);
-
-            const div = document.createElement('div');
-            div.className = 'waiting-item';
-            div.innerHTML = `
-                <div style="flex:1;" class="info-area">
-                    <strong style="color:#ffffff;">${data.customerName}</strong>
-                    <span style="display:block; font-size:11px; color:#a5b4fc; margin-top:2px;">${data.items.length} məhsul</span>
-                    <span style="display:block; font-size:10px; color:#9ca3af; margin-top:4px;">📅 ${formattedDate}</span>
-                </div>
-                <div class="action-area" style="display:flex; align-items:center;">
-                    <button class="btn-delete-waiting">Sil</button>
-                </div>
-            `;
-
-            div.addEventListener('click', (e) => {
-                if(e.target.closest('.btn-delete-waiting') || e.target.closest('.waiting-item-confirm-box')) return;
-                currentActiveDocId = docId;
-                customerInput.value = data.customerName;
-                invoiceItems = data.items;
-
-                if (dateInput && data.updatedAt) {
-                    const dateObj = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt);
-                    const offset = dateObj.getTimezoneOffset() * 60000;
-                    const localISODate = (new Date(dateObj - offset)).toISOString().slice(0, 10);
-                    dateInput.value = localISODate;
-                }
-
-                renderItems();
-                if (btnWaiting) btnWaiting.textContent = 'Yenilə';
-            });
-
-            const btnDelete = div.querySelector('.btn-delete-waiting');
-            const actionArea = div.querySelector('.action-area');
-
-            btnDelete.addEventListener('click', (e) => {
-                e.stopPropagation();
-                btnDelete.style.display = 'none';
-                
-                const confirmBox = document.createElement('div');
-                confirmBox.className = 'waiting-item-confirm-box';
-                confirmBox.innerHTML = `
-                    <span>Silinsin?</span>
-                    <button class="btn-confirm-yes" style="background:#ef4444; color:#fff; border:none; padding:3px 8px; margin:0 3px; cursor:pointer; border-radius:3px;">Bəli</button>
-                    <button class="btn-confirm-no" style="background:#4b5563; color:#fff; border:none; padding:3px 8px; margin:0 3px; cursor:pointer; border-radius:3px;">Xeyr</button>
-                `;
-
-                confirmBox.querySelector('.btn-confirm-yes').addEventListener('click', async (eSub) => {
-                    eSub.stopPropagation();
-                    try {
-                        await deleteDoc(doc(db, "waiting_invoices", docId));
-                        if (currentActiveDocId === docId) resetForm();
-                        fetchWaitingList();
-                        showNotification("Qaimə uğurla silindi!", "success");
-                    } catch (err) {
-                        showNotification("Silmək mümkün olmadı!", "error");
-                    }
-                });
-
-                confirmBox.querySelector('.btn-confirm-no').addEventListener('click', (eSub) => {
-                    eSub.stopPropagation();
-                    confirmBox.remove();
-                    btnDelete.style.display = 'block';
-                });
-
-                actionArea.appendChild(confirmBox);
-            });
-
-            waitingListContainer.appendChild(div);
-        });
+        renderWaitingList(allWaitingInvoices);
     } catch (e) { 
         console.error(e); 
     }
+}
+
+// Siyahını ekrana çəkən və axtarışı idarə edən funksiya
+function renderWaitingList(list) {
+    if (!waitingListContainer) return;
+    waitingListContainer.innerHTML = '';
+
+    if(list.length === 0) {
+        waitingListContainer.innerHTML = '<p style="font-size:12px; color:#9ca3af; text-align:center;">Gözləyən iş yoxdur.</p>';
+        return;
+    }
+
+    list.forEach((data) => {
+        const docId = data.id;
+        const formattedDate = formatDate(data.updatedAt);
+
+        const div = document.createElement('div');
+        div.className = 'waiting-item';
+        div.innerHTML = `
+            <div style="flex:1;" class="info-area">
+                <strong style="color:#ffffff;">${data.customerName}</strong>
+                <span style="display:block; font-size:11px; color:#a5b4fc; margin-top:2px;">${data.items.length} məhsul</span>
+                <span style="display:block; font-size:10px; color:#9ca3af; margin-top:4px;">📅 ${formattedDate}</span>
+            </div>
+            <div class="action-area" style="display:flex; align-items:center;">
+                <button class="btn-delete-waiting">Sil</button>
+            </div>
+        `;
+
+        div.addEventListener('click', (e) => {
+            if(e.target.closest('.btn-delete-waiting') || e.target.closest('.waiting-item-confirm-box')) return;
+            currentActiveDocId = docId;
+            customerInput.value = data.customerName;
+            invoiceItems = data.items;
+
+            if (dateInput && data.updatedAt) {
+                const dateObj = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt);
+                const offset = dateObj.getTimezoneOffset() * 60000;
+                const localISODate = (new Date(dateObj - offset)).toISOString().slice(0, 10);
+                dateInput.value = localISODate;
+            }
+
+            renderItems();
+            if (btnWaiting) btnWaiting.textContent = 'Yenilə';
+        });
+
+        const btnDelete = div.querySelector('.btn-delete-waiting');
+        const actionArea = div.querySelector('.action-area');
+
+        btnDelete.addEventListener('click', (e) => {
+            e.stopPropagation();
+            btnDelete.style.display = 'none';
+            
+            const confirmBox = document.createElement('div');
+            confirmBox.className = 'waiting-item-confirm-box';
+            confirmBox.innerHTML = `
+                <span>Silinsin?</span>
+                <button class="btn-confirm-yes" style="background:#ef4444; color:#fff; border:none; padding:3px 8px; margin:0 3px; cursor:pointer; border-radius:3px;">Bəli</button>
+                <button class="btn-confirm-no" style="background:#4b5563; color:#fff; border:none; padding:3px 8px; margin:0 3px; cursor:pointer; border-radius:3px;">Xeyr</button>
+            `;
+
+            confirmBox.querySelector('.btn-confirm-yes').addEventListener('click', async (eSub) => {
+                eSub.stopPropagation();
+                try {
+                    await deleteDoc(doc(db, "waiting_invoices", docId));
+                    if (currentActiveDocId === docId) resetForm();
+                    fetchWaitingList();
+                    showNotification("Qaimə uğurla silindi!", "success");
+                } catch (err) {
+                    showNotification("Silmək mümkün olmadı!", "error");
+                }
+            });
+
+            confirmBox.querySelector('.btn-confirm-no').addEventListener('click', (eSub) => {
+                eSub.stopPropagation();
+                confirmBox.remove();
+                btnDelete.style.display = 'block';
+            });
+
+            actionArea.appendChild(confirmBox);
+        });
+
+        waitingListContainer.appendChild(div);
+    });
 }
 
 const btnRefresh = document.getElementById('btn-refresh');

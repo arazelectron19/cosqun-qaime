@@ -285,7 +285,7 @@ body {
     border-color: #5bc0be !important;
 }
 
-.waiting-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+.waiting-list { display: flex; flex-direction: column; gap: 6px; max-height: 400px; overflow-y: auto; }
 .waiting-item { display: flex; justify-content: space-between; align-items: center; background: #0b132b; border: 1px solid #3a506b; padding: 8px 10px; border-radius: 5px; cursor: pointer; }
 
 .btn-delete-waiting {
@@ -768,4 +768,23 @@ body {
         size: A4;
         margin: 10mm;
     }
+}
+
+/* Gözləyən qaimələr axtarış inputu */
+#waiting-search-input {
+    flex: 1;
+    max-width: 160px;
+    height: 32px;
+    padding: 4px 10px;
+    background-color: #0b132b;
+    border: 1px solid #3a506b;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+#waiting-search-input:focus {
+    border-color: #5bc0be;
 }
