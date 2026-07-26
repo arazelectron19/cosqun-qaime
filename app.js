@@ -278,7 +278,7 @@ function fastCalculateTotal() {
 if (btnAddItem) {
     btnAddItem.addEventListener('click', () => {
         btnAddItem.classList.add('clicked');
-        setTimeout(() => btnAdditem.classList.remove('clicked'), 500);
+        setTimeout(() => btnAddItem.classList.remove('clicked'), 250); // btnAddItem (İ hərfi böyük)
         invoiceItems.push({ name: '', qty: 1, price: 0 });
         renderItems();
     });
