@@ -372,13 +372,14 @@ function renderWaitingList(list) {
                 <span style="display:block; font-size:11px; color:#a5b4fc; margin-top:2px;">${data.items.length} məhsul</span>
                 <span style="display:block; font-size:10px; color:#9ca3af; margin-top:4px;">📅 ${formattedDate}</span>
             </div>
-            <div class="action-area" style="display:flex; align-items:center;">
+            <div class="action-area" style="display:flex; align-items:center; gap: 8px;">
+                <button class="btn-complete-waiting">Tamamla</button>
                 <button class="btn-delete-waiting">Sil</button>
             </div>
         `;
 
         div.addEventListener('click', (e) => {
-            if(e.target.closest('.btn-delete-waiting') || e.target.closest('.waiting-item-confirm-box')) return;
+            if(e.target.closest('.btn-delete-waiting') || e.target.closest('.btn-complete-waiting') || e.target.closest('.waiting-item-confirm-box')) return;
             currentActiveDocId = docId;
             customerInput.value = data.customerName;
             invoiceItems = data.items;
@@ -394,6 +395,23 @@ function renderWaitingList(list) {
             if (btnWaiting) btnWaiting.textContent = 'Yenilə';
         });
 
+        // Tamamla düyməsinin funksionallığı
+const btnComplete = div.querySelector('.btn-complete-waiting');
+btnComplete.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try {
+        await updateDoc(doc(db, "waiting_invoices", docId), {
+            status: "archived",
+            updatedAt: new Date()
+        });
+        if (currentActiveDocId === docId) resetForm();
+        fetchWaitingList();
+        showNotification("Qaimə uğurla arxivə köçürüldü!", "success");
+    } catch (err) {
+        showNotification("Xəta baş verdi!", "error");
+    }
+});
+
         const btnDelete = div.querySelector('.btn-delete-waiting');
         const actionArea = div.querySelector('.action-area');
 
@@ -404,9 +422,9 @@ function renderWaitingList(list) {
             const confirmBox = document.createElement('div');
             confirmBox.className = 'waiting-item-confirm-box';
             confirmBox.innerHTML = `
-                <span>Silinsin?</span>
-                <button class="btn-confirm-yes" style="background:#ef4444; color:#fff; border:none; padding:3px 8px; margin:0 3px; cursor:pointer; border-radius:3px;">Bəli</button>
-                <button class="btn-confirm-no" style="background:#4b5563; color:#fff; border:none; padding:3px 8px; margin:0 3px; cursor:pointer; border-radius:3px;">Xeyr</button>
+                <span style="color:#fff; font-size:13px; margin-right:5px;">Silinsin?</span>
+                <button class="btn-confirm-yes">Bəli</button>
+                <button class="btn-confirm-no">Xeyr</button>
             `;
 
             confirmBox.querySelector('.btn-confirm-yes').addEventListener('click', async (eSub) => {
@@ -781,9 +799,7 @@ function toSafeFileName(text) {
 }
 
 async function generateAndShareInvoice(type) {
-    const originalBtnText = btnSharePdf.innerHTML;
-    btnSharePdf.disabled = true;
-    btnSharePdf.innerHTML = "⌛ Hazırlanır...";
+    if (btnSharePdf) btnSharePdf.disabled = true;
 
     showCaptureOverlay();
     const { printContainer, customerName } = buildInvoicePrintContainer();
@@ -820,8 +836,7 @@ async function generateAndShareInvoice(type) {
     } finally {
         printContainer.remove();
         hideCaptureOverlay();
-        btnSharePdf.disabled = false;
-        btnSharePdf.innerHTML = originalBtnText;
+        if (btnSharePdf) btnSharePdf.disabled = false;
     }
 }
 
@@ -845,3 +860,9 @@ async function shareOrDownloadFile(file, blob, filename, label) {
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 5000);
 }
+
+window.appOpenShareChoiceModal = openShareChoiceModal;
+window.setExternalInvoiceData = (name, items) => {
+    if (customerInput) customerInput.value = name;
+    invoiceItems = items;
+};

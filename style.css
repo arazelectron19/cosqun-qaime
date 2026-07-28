@@ -224,9 +224,9 @@ body {
 
 /* Sətir sil */
 .btn-delete-row {
-    background-color: #0b132b;
-    border: 1px solid #ef4444;
-    color: #ef4444;
+    background-color: #ef4444 !important;
+    border: none !important;
+    color: #ffffff !important;
     width: 28px;
     height: 28px;
     border-radius: 5px;
@@ -236,11 +236,6 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-}
-
-.btn-delete-row:hover {
-    background-color: #ef4444;
-    color: #ffffff;
 }
 
 /* Yekun məbləğ sahəsi */
@@ -787,4 +782,62 @@ body {
 
 #waiting-search-input:focus {
     border-color: #5bc0be;
+}
+
+/* Gözləyən siyahıdakı ümumi düymələr üçün baza stil */
+.btn-complete-waiting, .btn-delete-waiting {
+    border: none !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    transition: opacity 0.2s ease-in-out !important;
+}
+
+.btn-complete-waiting:hover, .btn-delete-waiting:hover {
+    opacity: 0.9 !important;
+}
+
+/* Tamamla düyməsi (Mavi fon) */
+.btn-complete-waiting {
+    background: #3b82f6 !important;
+}
+
+/* Sil düyməsi (Qırmızı fon) */
+.btn-delete-waiting {
+    background: #ef4444 !important;
+}
+
+/* Təsdiq qutusunun içindəki Bəli və Xeyr düymələri */
+.waiting-item-confirm-box .btn-confirm-yes,
+.waiting-item-confirm-box .btn-confirm-no {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    border: none !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Bəli düyməsi (Qırmızı) */
+.waiting-item-confirm-box .btn-confirm-yes {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.waiting-item-confirm-box .btn-confirm-yes:hover {
+    opacity: 0.9;
+}
+
+/* Xeyr düyməsi ( Boz) */
+.waiting-item-confirm-box .btn-confirm-no {
+    background: #4b5563 !important;
+    color: #ffffff !important;
+}
+
+.waiting-item-confirm-box .btn-confirm-no:hover {
+    opacity: 0.9;
 }
