@@ -18,7 +18,6 @@ const baseTemplatesList = document.getElementById('base-templates-list');
 
 let allGlobalProducts = [];
 
-// BU FAYL ÜÇÜN DƏ YENİ, DAHA DA BÖYÜDÜLMÜŞ BİLDİRİŞ FUNKSİYASI (22px)
 function showNotification(message, type = 'success') {
     const oldNotification = document.getElementById('custom-notification');
     if (oldNotification) oldNotification.remove();
@@ -31,11 +30,11 @@ function showNotification(message, type = 'success') {
         position: 'fixed',
         top: '24px',
         right: '24px',
-        padding: '22px 40px',          // Daxili boşluq bir az da böyüdü
+        padding: '22px 40px',
         borderRadius: '12px',
         color: '#ffffff',
-        fontWeight: '900',             // Daha qalın yazı fontu
-        fontSize: '22px',              // Şrift ölçüsü 22px-ə qaldırıldı
+        fontWeight: '900',
+        fontSize: '22px',
         zIndex: '10000',
         boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
         transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
@@ -44,11 +43,11 @@ function showNotification(message, type = 'success') {
     });
 
     if (type === 'success') {
-        notification.style.backgroundColor = '#10b981'; // Yaşıl fond
-        notification.style.borderLeft = '10px solid #059669'; // Sol xətt daha qalın
+        notification.style.backgroundColor = '#10b981';
+        notification.style.borderLeft = '10px solid #059669';
     } else {
-        notification.style.backgroundColor = '#ef4444'; // Qırmızı fond
-        notification.style.borderLeft = '10px solid #dc2626'; // Sol xətt daha qalın
+        notification.style.backgroundColor = '#ef4444';
+        notification.style.borderLeft = '10px solid #dc2626';
     }
 
     document.body.appendChild(notification);
@@ -62,16 +61,41 @@ function showNotification(message, type = 'success') {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100px)';
         setTimeout(() => notification.remove(), 400);
-    }, 3500); // Ekranda qalma müddəti 3.5 saniyəyə qaldırıldı
+    }, 3500);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSettingsData();
+
+    // Accordion menyular
+    const toggleHeader = document.getElementById('toggle-products-header');
+    const productsList = document.getElementById('base-products-list');
+    const headerArrow = document.getElementById('header-arrow');
+
+    if (toggleHeader && productsList && headerArrow) {
+        toggleHeader.addEventListener('click', () => {
+            productsList.classList.toggle('active');
+            headerArrow.classList.toggle('rotate-arrow');
+        });
+    }
+
+    const toggleTemplateHeader = document.getElementById('toggle-template-header');
+    const templateSelector = document.getElementById('template-products-selector');
+    const templateArrow = document.getElementById('template-arrow');
+
+    if (toggleTemplateHeader && templateSelector && templateArrow) {
+        toggleTemplateHeader.addEventListener('click', () => {
+            templateSelector.classList.toggle('active');
+            templateArrow.classList.toggle('rotate-arrow');
+        });
+    }
 });
 
+// Bütün məlumatları yükləyən tək və əsas funksiya
 async function loadSettingsData() {
     await fetchBaseProducts();
     await fetchBaseTemplates();
+    await fetchCustomTemplates();
 }
 
 async function fetchBaseProducts() {
@@ -326,7 +350,7 @@ if (templateForm) {
         });
 
         if (selectedItems.length === 0) {
-            showNotification("Şablona ən azı bir məhsul seçməlisiniz!", "error"); // ARTIQ BURADA QIRMIZI BİLDİRİŞ ÇIXACAQ
+            showNotification("Şablona ən azı bir məhsul seçməlisiniz!", "error");
             return;
         }
 
@@ -557,28 +581,249 @@ window.saveTemplateModalFromModal = async function() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const toggleHeader = document.getElementById('toggle-products-header');
-    const productsList = document.getElementById('base-products-list');
-    const headerArrow = document.getElementById('header-arrow');
+async function fetchCustomTemplates() {
+    const customListContainer = document.getElementById('custom-templates-settings-list');
+    if (!customListContainer) return;
 
-    if (toggleHeader && productsList && headerArrow) {
-        toggleHeader.addEventListener('click', () => {
-            productsList.classList.toggle('active');
-            headerArrow.classList.toggle('rotate-arrow');
+    // Əgər struktur hələ qurulmayıbsa, əvvəlcə konteyneri təmizləyib yeni elementləri yaradırıq
+    if (!customListContainer.querySelector('.special-main-wrapper')) {
+        customListContainer.innerHTML = ''; // Köhnə statik başlığı tamamilə təmizləyirik
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'special-main-wrapper';
+        wrapper.style.cssText = 'border: 1px solid #2e2e4f; border-radius: 8px; background: #16162a; overflow: hidden;';
+        wrapper.innerHTML = `
+            <div id="special-templates-header" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: #1f1f38;">
+                <span style="font-size: 15px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+                    ⭐ Xüsusi Yadda Saxlanılan Şablonlar
+                </span>
+                <span id="special-arrow" style="color: #9ca3af; font-size: 16px; font-weight: bold; transition: transform 0.2s ease;">&gt;</span>
+            </div>
+            <div id="special-templates-inner-content" style="display: none; padding: 12px; flex-direction: column; gap: 10px; border-top: 1px solid #2e2e4f;">
+                <p style="color:#9ca3af; font-size:12px; text-align:center; margin:0;">Yüklənir...</p>
+            </div>
+        `;
+        customListContainer.appendChild(wrapper);
+
+        const header = wrapper.querySelector('#special-templates-header');
+        const innerContent = wrapper.querySelector('#special-templates-inner-content');
+        const arrow = wrapper.querySelector('#special-arrow');
+
+        header.addEventListener('click', () => {
+            if (innerContent.style.display === 'none') {
+                innerContent.style.display = 'flex';
+                arrow.style.transform = 'rotate(90deg)'; // Açıldıqda aşağı baxır
+            } else {
+                innerContent.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';  // Bağlı olduqda sağa baxır
+            }
         });
     }
-});
 
-document.addEventListener('DOMContentLoaded', () => {
-    const toggleTemplateHeader = document.getElementById('toggle-template-header');
-    const templateSelector = document.getElementById('template-products-selector');
-    const templateArrow = document.getElementById('template-arrow');
+    const targetListDiv = document.getElementById('special-templates-inner-content');
+    if (!targetListDiv) return;
+    
+    try {
+        const snap = await getDocs(collection(db, "special_templates"));
+        
+        // Köhnə siyahı elementlərini təmizləyirik
+        const existingRows = targetListDiv.querySelectorAll('.setting-row-item');
+        existingRows.forEach(r => r.remove());
 
-    if (toggleTemplateHeader && templateSelector && templateArrow) {
-        toggleTemplateHeader.addEventListener('click', () => {
-            templateSelector.classList.toggle('active');
-            templateArrow.classList.toggle('rotate-arrow');
+        const loadingText = targetListDiv.querySelector('p');
+        if (loadingText) loadingText.remove();
+
+        if (snap.empty) {
+            if (!targetListDiv.querySelector('.no-template-msg')) {
+                const msg = document.createElement('p');
+                msg.className = 'no-template-msg';
+                msg.style.cssText = 'color:#9ca3af; font-size:12px; text-align:center; margin:0;';
+                msg.textContent = 'Xüsusi yadda saxlanılan şablon yoxdur.';
+                targetListDiv.appendChild(msg);
+            }
+            return;
+        }
+
+        const noMsg = targetListDiv.querySelector('.no-template-msg');
+        if (noMsg) noMsg.remove();
+
+        snap.forEach((docSnapshot) => {
+            const tData = docSnapshot.data();
+            const tId = docSnapshot.id;
+            const itemCount = tData.items ? tData.items.length : 0;
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'setting-row-item';
+            rowDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #1f1f38; border: 1px solid #2e2e4f; border-radius: 8px;';
+
+            rowDiv.innerHTML = `
+                <div>
+                    <strong style="font-size: 15px; color: #fff;">⭐ ${tData.templateName || tData.name || 'Adsız Şablon'}</strong>
+                    <span style="font-size:12px; color:#9ca3af; display:block; margin-top:2px;">(${itemCount} məhsul daxildir)</span>
+                </div>
+                <div class="custom-template-actions" style="display:inline-flex; align-items:center; gap: 8px;">
+                    <button class="btn-edit-setting btn-edit-custom-template" style="background-color: #f59e0b; padding: 6px 10px; border-radius: 4px; border: none; cursor: pointer; color: white;" onclick="openSpecialTemplateModal('${tId}', '${(tData.templateName || tData.name || '').replace(/'/g, "\\'")}')">✏️</button>
+                    <button class="btn-delete-setting btn-delete-custom-template" data-id="${tId}">Sil</button>
+                </div>
+            `;
+
+            const deleteBtn = rowDiv.querySelector('.btn-delete-custom-template');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteBtn.style.display = 'none';
+
+                const actionArea = rowDiv.querySelector('.custom-template-actions');
+                const confirmBox = document.createElement('div');
+                confirmBox.className = 'setting-item-confirm-box';
+                confirmBox.style.cssText = 'display: inline-flex; align-items: center;';
+                confirmBox.innerHTML = `
+                    <span style="font-size:12px; color:#ef4444; margin-right:5px; font-weight:bold;">Silinsin?</span>
+                    <button class="btn-confirm-yes" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; margin:0 3px; cursor:pointer; border-radius:4px; font-size:11px; font-weight:bold;">Bəli</button>
+                    <button class="btn-confirm-no" style="background:#4b5563; color:#fff; border:none; padding:4px 8px; margin:0 3px; cursor:pointer; border-radius:4px; font-size:11px; font-weight:bold;">Xeyr</button>
+                `;
+
+                confirmBox.querySelector('.btn-confirm-yes').addEventListener('click', async (eSub) => {
+                    eSub.stopPropagation();
+                    try {
+                        await deleteDoc(doc(db, "special_templates", tId));
+                        showNotification("Şablon uğurla silindi!", "success");
+                        fetchCustomTemplates();
+                    } catch (err) {
+                        console.error("Şablon silinmədi:", err);
+                        showNotification("Şablonu silmək mümkün olmadı!", "error");
+                    }
+                });
+
+                confirmBox.querySelector('.btn-confirm-no').addEventListener('click', (eSub) => {
+                    eSub.stopPropagation();
+                    confirmBox.remove();
+                    deleteBtn.style.display = 'block';
+                });
+
+                actionArea.appendChild(confirmBox);
+            });
+
+            targetListDiv.appendChild(rowDiv);
         });
+
+    } catch (e) {
+        console.error("Xüsusi şablonlar yüklənmədi:", e);
+        targetListDiv.innerHTML = '<p style="color:#ef4444; font-size:12px; text-align:center; margin:0;">Şablonları yükləyərkən xəta baş verdi.</p>';
     }
-});
+}
+
+// Xüsusi şablonu redaktə etmək üçün modalı açan funksiya
+window.openSpecialTemplateModal = async function(tId, currentName) {
+    const modal = document.getElementById('template-modal');
+    const idInput = document.getElementById('modal-template-id');
+    const nameInput = document.getElementById('modal-template-name');
+    const checkboxesContainer = document.getElementById('modal-template-checkboxes');
+
+    if (!modal || !idInput || !nameInput || !checkboxesContainer) return;
+
+    idInput.value = tId;
+    nameInput.value = currentName;
+    checkboxesContainer.innerHTML = 'Məhsullar yüklənir...';
+
+    modal.style.display = 'flex';
+
+    try {
+        // Bütün qlobal məhsulları alırıq
+        const tempDoc = allGlobalProducts;
+        
+        // Həmin xüsusi şablonun öz məhsullarını tapırıq
+        const templateSnap = await getDocs(collection(db, "special_templates"));
+        let currentTemplateItems = [];
+        
+        templateSnap.forEach(d => {
+            if (d.id === tId) {
+                currentTemplateItems = d.data().items || [];
+            }
+        });
+
+        checkboxesContainer.innerHTML = '';
+
+        tempDoc.forEach(prod => {
+            const isChecked = currentTemplateItems.some(item => item.name === prod.name);
+
+            const label = document.createElement('label');
+            label.style.display = 'flex';
+            label.style.alignItems = 'center';
+            label.style.justifyContent = 'space-between';
+            label.style.padding = '10px 14px';
+            label.style.background = isChecked ? 'rgba(91, 192, 190, 0.1)' : '#16162a';
+            label.style.border = isChecked ? '1px solid #5bc0be' : '1px solid #2e2e4f';
+            label.style.borderRadius = '8px';
+            label.style.cursor = 'pointer';
+            label.style.fontSize = '14px';
+            label.style.color = '#e2e8f0';
+            label.style.transition = 'all 0.15s ease';
+
+            label.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <input type="checkbox" value="${prod.id}" data-name="${prod.name}" data-price="${prod.price}" ${isChecked ? 'checked' : ''} style="accent-color: #5bc0be; width:16px; height:16px; cursor:pointer;">
+                    <span>${prod.name}</span>
+                </div>
+                <span style="color: #5bc0be; font-weight: bold;">${prod.price.toFixed(2)} AZN</span>
+            `;
+
+            const cb = label.querySelector('input[type="checkbox"]');
+            cb.addEventListener('change', () => {
+                if (cb.checked) {
+                    label.style.background = 'rgba(91, 192, 190, 0.1)';
+                    label.style.borderColor = '#5bc0be';
+                } else {
+                    label.style.background = '#16162a';
+                    label.style.borderColor = '#2e2e4f';
+                }
+            });
+
+            checkboxesContainer.appendChild(label);
+        });
+
+        // Modalın yadda saxla düyməsinin funksiyasını special_templates üçün yönləndiririk
+        window.saveTemplateModalFromModal = async function() {
+            const idVal = document.getElementById('modal-template-id').value;
+            const newName = nameInput.value.trim();
+            
+            if (!newName) {
+                showNotification("Şablon adı boş ola bilməz!", "error");
+                return;
+            }
+
+            const checkedBoxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
+            const updatedItems = [];
+
+            checkedBoxes.forEach(box => {
+                updatedItems.push({
+                    name: box.getAttribute('data-name'),
+                    price: parseFloat(box.getAttribute('data-price')) || 0,
+                    qty: 1
+                });
+            });
+
+            if (updatedItems.length === 0) {
+                showNotification("Şablonda ən azı bir məhsul saxlamalısınız!", "error");
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, "special_templates", idVal), {
+                    templateName: newName,
+                    items: updatedItems
+                });
+                
+                showNotification("Xüsusi şablon uğurla yeniləndi!", "success");
+                closeTemplateModal();
+                loadSettingsData();
+            } catch (error) {
+                console.error("Şablon yenilənmədi:", error);
+                showNotification("Yadda saxlamaq mümkün olmadı!", "error");
+            }
+        };
+
+    } catch (err) {
+        console.error("Xüsusi şablon redaktə xətası:", err);
+        checkboxesContainer.innerHTML = 'Məhsulları yükləmək mümkün olmadı.';
+    }
+}

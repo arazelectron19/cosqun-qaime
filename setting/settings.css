@@ -517,3 +517,35 @@ body {
         transform: rotate(360deg);
     }
 }
+
+/* Xüsusi Şablonlar Kartının Ümumi Konteyneri */
+.custom-templates-card {
+    background-color: #1a1a2e !important;
+    border: 1px solid #2e2e4f !important;
+    padding: 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 12px !important;
+    margin-top: 0 !important;
+}
+
+/* Kartın Başlığı */
+.custom-templates-card h3 {
+    margin-top: 0;
+    font-size: 16px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 10px;
+    color: #ffffff;
+}
+
+/* Dinamik Elementlərin Siyahısı */
+.custom-templates-list {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100% !important;
+    box-sizing: border-box;
+}

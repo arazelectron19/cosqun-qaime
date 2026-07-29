@@ -1,12 +1,12 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="az">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1024, initial-scale=0.4, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <title>Qaime</title>
-    <link rel="stylesheet" href="./style.css?v=9">
+    <link rel="stylesheet" href="./style.css?v=6">
     <link rel="icon" type="image/png" href="./favicon.png?v=2">
     <link rel="shortcut icon" type="image/png" href="./favicon.png?v=2">
 
@@ -15,15 +15,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;800&display=swap" rel="stylesheet">
 
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
 </head>
+
 <body>
 
     <div class="app-container">
@@ -33,16 +34,17 @@
             <div class="actions">
                 <button class="btnNewInvoice" id="btn-new-invoice">Yeni+</button>
                 <button class="btn btn-yellow" id="btn-waiting">Gözləməyə Al</button>
-                
+
                 <!-- PDF yaradıb paylaşacaq düymə -->
                 <button class="btn-share-style" id="btn-share-pdf">📤 Paylaş</button>
             </div>
         </div>
 
-<!-- Dəyişdirilmiş yeni kod bloqu -->
-<div style="margin-top: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
-    <label for="invoice-date-input" style="font-size: 12px; color: #a5b4fc; font-weight: 600;">Qaimə Tarixi:</label>
-    <input type="date" id="invoice-date-input" style="
+        <!-- Dəyişdirilmiş yeni kod bloqu -->
+        <div style="margin-top: 12px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 6px;">
+            <label for="invoice-date-input" style="font-size: 12px; color: #a5b4fc; font-weight: 600;">Qaimə
+                Tarixi:</label>
+            <input type="date" id="invoice-date-input" style="
         width: 100%;
         padding: 10px;
         background-color: #1e1b4b;
@@ -53,15 +55,21 @@
         outline: none;
         box-sizing: border-box;
     ">
-</div>
-
-        <div class="template-selector-container">
-            <label for="select-template" class="template-label">📋 Sürətli Şablon Seçin:</label>
-            <select id="select-template" class="template-select-dropdown">
-                <option value="">-- Şablon seçilməyib --</option>
-            </select>
         </div>
 
+        <div class="template-selector-container">
+    <label for="select-template" class="template-label">📋 Sürətli Şablon Seçin:</label>
+    
+    <!-- Dropdown və Yadda Saxla düyməsini yan-yana qoyan sətir -->
+    <div class="template-inline-row">
+        <select id="select-template" class="template-select-dropdown">
+            <option value="">-- Şablon seçilməyib --</option>
+        </select>
+        <button type="button" id="open-save-template-modal-btn" class="btn-save-template-mini">
+            Yadda saxla
+        </button>
+    </div>
+</div>
         <div class="main-content">
             <!-- Sol tərəf: Daxiletmə və Cədvəl -->
             <div class="invoice-box">
@@ -81,7 +89,7 @@
                             <!-- Dinamik sətirlər -->
                         </tbody>
                     </table>
-                    
+
                     <!-- Sürətli məhsul seçimi dropdown paneli -->
                     <div id="custom-dropdown" class="custom-dropdown" style="display: none;"></div>
                 </div>
@@ -96,13 +104,13 @@
             <!-- Sağ tərəf: Gözləmə Paneli -->
             <div class="waiting-panel">
                 <div class="panel-header">
-    <h3>Gözləyən Qaimələr</h3>
-    <input type="text" id="waiting-search-input" placeholder="Axtar..." autocomplete="off">
-    <div class="panel-header-buttons">
-        <button id="btn-refresh" class="btn-refresh">Yenilə</button>
-        <a href="setting/" id="btn-settings" class="btn-settings">⚙️ Parametr</a>
-    </div>
-</div>
+                    <h3>Gözləyən Qaimələr</h3>
+                    <input type="text" id="waiting-search-input" placeholder="Axtar..." autocomplete="off">
+                    <div class="panel-header-buttons">
+                        <button id="btn-refresh" class="btn-refresh">Yenilə</button>
+                        <a href="setting/" id="btn-settings" class="btn-settings">⚙️ Parametr</a>
+                    </div>
+                </div>
                 <div class="waiting-list" id="waiting-list-container">
                     <!-- Gözləyən siyahı -->
                 </div>
@@ -110,7 +118,19 @@
         </div>
     </div>
 
-    <script type="module" src="./app.js?v=10"></script>
+    <!-- Şablon Adı Üçün Mərkəzi Modal Pəncərə -->
+    <div id="template-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>Şablon üçün ad daxil edin</h3>
+            <input type="text" id="modal-template-name-input" placeholder="Məsələn: Dunyamalılar" autocomplete="off" />
+            <div class="modal-buttons">
+                <button type="button" id="modal-cancel-btn" class="btn-secondary">Ləğv et</button>
+                <button type="button" id="modal-save-btn" class="btn-primary">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./app.js?v=13"></script>
     <script src="./html2canvas.min.js"></script>
 </body>
 </html>

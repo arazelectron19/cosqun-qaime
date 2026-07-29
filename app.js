@@ -132,7 +132,8 @@ function setTodayDate() {
     }
 }
 
-// Firebase-dən həm məhsul siyahısını, həm də şablonları çəkirik
+
+// Firebase-dən həm məhsul siyahısını, həm də hər iki növ şablonu çəkirik
 async function loadGlobalProductsAndTemplates() {
     try {
         // 1. Məhsulları alaq
@@ -140,10 +141,12 @@ async function loadGlobalProductsAndTemplates() {
         dbProductsList = [];
         pSnap.forEach(d => dbProductsList.push(d.data()));
 
-        // 2. Şablonları dropdown-a dolduraq
+        // 2. Şablonları dropdown-a dolduraq (Həm base_templates, həm də special_templates)
         if (selectTemplate) {
-            const tSnap = await getDocs(collection(db, "base_templates"));
             selectTemplate.innerHTML = '<option value="">-- Şablon seçilməyib --</option>';
+
+            // Adi şablonlar
+            const tSnap = await getDocs(collection(db, "base_templates"));
             tSnap.forEach(docSnapshot => {
                 const tData = docSnapshot.data();
                 const option = document.createElement('option');
@@ -152,6 +155,21 @@ async function loadGlobalProductsAndTemplates() {
                 option.dataset.items = JSON.stringify(tData.items);
                 selectTemplate.appendChild(option);
             });
+
+            // Xüsusi yadda saxlanılan şablonlar (⭐ ulduzlu olanlar)
+            const specialSnap = await getDocs(collection(db, "special_templates"));
+            if (!specialSnap.empty) {
+                // İstəsəniz ayıran qrup və ya sadəcə əlavə edə bilərsiz
+                specialSnap.forEach(docSnapshot => {
+                    const tData = docSnapshot.data();
+                    const option = document.createElement('option');
+                    option.value = docSnapshot.id;
+                    // Başında ulduz ilə görünsün ki, xüsusi olduğu bilinsin
+                    option.textContent = `⭐ ${tData.templateName || tData.name}`;
+                    option.dataset.items = JSON.stringify(tData.items);
+                    selectTemplate.appendChild(option);
+                });
+            }
         }
     } catch (e) {
         console.error("İlkin data yüklənmə xətası:", e);
@@ -866,3 +884,167 @@ window.setExternalInvoiceData = (name, items) => {
     if (customerInput) customerInput.value = name;
     invoiceItems = items;
 };
+
+
+// Yadda saxla düyməsinin və mərkəzi modalın idarə edilməsi
+const btnSaveTemplateMini = document.getElementById('open-save-template-modal-btn');
+const templateModal = document.getElementById('template-modal');
+const modalTemplateNameInput = document.getElementById('modal-template-name-input');
+const modalSaveBtn = document.getElementById('modal-save-btn');
+const modalCancelBtn = document.getElementById('modal-cancel-btn');
+
+if (btnSaveTemplateMini && templateModal) {
+    btnSaveTemplateMini.addEventListener('click', () => {
+        if (invoiceItems.length === 1 && !invoiceItems[0].name.trim()) {
+            return showNotification("Boş şablon yadda saxlanıla bilməz!", "error");
+        }
+        
+        const customerName = customerInput ? customerInput.value.trim() : "";
+        modalTemplateNameInput.value = customerName || "Yeni Şablon";
+        
+        templateModal.style.display = 'flex';
+        modalTemplateNameInput.focus();
+        modalTemplateNameInput.select();
+    });
+}
+
+if (modalCancelBtn && templateModal) {
+    modalCancelBtn.addEventListener('click', () => {
+        templateModal.style.display = 'none';
+    });
+}
+
+// Modal xaricinə kliklədikdə bağlanması
+if (templateModal) {
+    templateModal.addEventListener('click', (e) => {
+        if (e.target === templateModal) {
+            templateModal.style.display = 'none';
+        }
+    });
+}
+
+if (modalSaveBtn && templateModal) {
+    modalSaveBtn.addEventListener('click', async () => {
+        const templateNameVal = modalTemplateNameInput.value.trim();
+        if (!templateNameVal) {
+            return showNotification("Şablon adı boş ola bilməz!", "error");
+        }
+
+        if (!invoiceItems || invoiceItems.length === 0) {
+            return showNotification("Qaimədə məhsul yoxdur!", "error");
+        }
+
+        try {
+            // 1. Anbarda olan məhsulları (`base_products`) Firebase-dən yoxlamaq üçün çəkirik
+            const productsSnapshot = await getDocs(collection(db, "base_products"));
+            const warehouseProducts = [];
+            productsSnapshot.forEach(docSnap => {
+                const pData = docSnap.data();
+                if (pData.name) {
+                    warehouseProducts.push(pData.name.toLowerCase().trim());
+                }
+            });
+
+            // 2. Qaimədəki məhsulların anbarda olub-olmadığını yoxlayırıq
+            let missingProducts = [];
+            invoiceItems.forEach(item => {
+                const itemName = (item.name || '').toLowerCase().trim();
+                // Əgər məhsul adı boş deyilsə və anbarda yoxdursa
+                if (itemName && !warehouseProducts.includes(itemName)) {
+                    missingProducts.push(item.name);
+                }
+            });
+
+            // Əgər anbarda olmayan məhsul tapıldısa, prosesi dayandır və xəta ver
+            if (missingProducts.length > 0) {
+                showNotification(`Anbarda olmayan məhsul var: ${missingProducts.join(', ')}`, "error");
+                return;
+            }
+
+            // 3. Hər şey qaydasındadırsa, "special_templates" kolleksiyasına yazırıq
+            const templateData = {
+                templateName: templateNameVal,
+                items: invoiceItems.map(item => ({
+                    name: item.name,
+                    qty: item.qty || 1,
+                    price: item.price || 0
+                }))
+            };
+
+            await addDoc(collection(db, "special_templates"), templateData);
+            
+            showNotification("Şablon uğurla xüsusi şablonlara yadda saxlandı!", "success");
+            templateModal.style.display = 'none';
+            
+            // Xüsusi şablonlar siyahısını dərhal yeniləyirik
+            if (typeof loadSpecialTemplates === 'function') {
+                loadSpecialTemplates(); 
+            }
+        } catch (err) {
+            console.error("Şablon yadda saxlama xətası:", err);
+            showNotification("Şablon yadda saxlanılmadı!", "error");
+        }
+    });
+}
+
+// Xüsusi şablonları Firebase-dən çəkib aşağıdakı bölmədə göstərən funksiya
+async function loadSpecialTemplates() {
+    const specialContainer = document.getElementById('special-templates-container'); // HTML-də aşağıdakı bölmənin ID-si
+    if (!specialContainer) return;
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "special_templates"));
+        specialContainer.innerHTML = '';
+
+        if (querySnapshot.empty) {
+            specialContainer.innerHTML = '<p style="font-size:12px; color:#9ca3af; text-align:center; padding: 10px;">Xüsusi yadda saxlanılan şablon yoxdur.</p>';
+            return;
+        }
+
+        querySnapshot.forEach((docSnapshot) => {
+            const data = docSnapshot.data();
+            const docId = docSnapshot.id;
+
+            const div = document.createElement('div');
+            div.className = 'waiting-item'; // Mövcud dizayn siniflərinə uyğun
+            div.style.cssText = "background: #111827; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #374151; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;";
+            
+            div.innerHTML = `
+                <div style="flex:1;" class="info-area">
+                    <strong style="color:#ffffff; font-size: 14px;">${data.templateName}</strong>
+                    <span style="display:block; font-size:11px; color:#a5b4fc; margin-top:2px;">(${data.items.length} məhsul daxildir)</span>
+                </div>
+                <div class="action-area" style="display:flex; align-items:center; gap: 6px;">
+                    <button class="btn-edit-special" title="Seç" style="background:#f59e0b; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;"><span style="font-size:14px;">✏️</span></button>
+                    <button class="btn-delete-special" style="background-color:#ef4444; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">Sil</button>
+                </div>
+            `;
+
+            // Şablonu seçib qaiməyə yükləmək
+            div.querySelector('.btn-edit-special').addEventListener('click', () => {
+                invoiceItems = data.items.map(item => ({
+                    name: item.name,
+                    qty: item.qty || 1,
+                    price: item.price || 0
+                }));
+                renderItems();
+                showNotification(`"${data.templateName}" şablonu yükləndi!`, "success");
+            });
+
+            // Şablonu silmək
+            div.querySelector('.btn-delete-special').addEventListener('click', async () => {
+                try {
+                    await deleteDoc(doc(db, "special_templates", docId));
+                    showNotification("Şablon silindi!", "success");
+                    loadSpecialTemplates();
+                } catch (err) {
+                    showNotification("Silinmə xətası!", "error");
+                }
+            });
+
+            specialContainer.appendChild(div);
+        });
+    } catch (e) {
+        console.error("Xüsusi şablonları çəkmə xətası:", e);
+    }
+}
