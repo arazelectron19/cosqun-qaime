@@ -1,5 +1,5 @@
 // ==========================================================================
-// PİN KOD MƏNTİQİ (PAROL: 1453)
+// PİN KOD MƏNTİQİ VƏ İNAKTİVLİK TAYMERİ (30 SANİYƏ)
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     const correctPin = "1453";
@@ -13,15 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!pinScreen) return;
 
-    // Əgər əvvəlcədən daxil olubsa, PİN ekranını birbaşa gizlət
+    // Əgər əvvəlcədən daxil olubsa, PİN ekranını gizlət və inaktivlik taymerini işə sal
     if (localStorage.getItem("isUnlocked") === "true") {
         pinScreen.style.display = 'none';
-        return;
+        initInactivityTimer();
+    } else {
+        pinScreen.style.display = 'flex';
+        pinScreen.style.opacity = '1';
     }
-
-    // Əks halda PİN ekranını göstər
-    pinScreen.style.display = 'flex';
-    pinScreen.style.opacity = '1';
 
     pad.addEventListener('click', (e) => {
         if (isChecking) return;
@@ -68,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function verifyPin() {
         if (enteredPin === correctPin) {
-            // PİN düzgündür, yaddaşa yazırıq ki, bir daha istəməsin
             localStorage.setItem("isUnlocked", "true");
 
             pinScreen.style.opacity = '0';
@@ -76,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 pinScreen.style.display = 'none';
                 isChecking = false;
+                initInactivityTimer(); // PİN keçildikdən sonra taymeri başladırıq
             }, 300);
         } else {
             dots.forEach(dot => dot.classList.add('error'));
@@ -88,5 +87,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 isChecking = false;
             }, 600);
         }
+    }
+
+    // 30 saniyə hərəkətsizlik üçün taymer funksiyası
+    function initInactivityTimer() {
+        let inactivityTimeout;
+
+        function resetTimer() {
+            clearTimeout(inactivityTimeout);
+            // 30 saniyə = 30000 millisaniyə (lazım gələrsə artırıb azalda bilərsən)
+            inactivityTimeout = setTimeout(() => {
+                // Kilidi silirik və səhifəni yeniləyirik ki, PİN ekranı çıxsın
+                localStorage.removeItem("isUnlocked");
+                location.reload(); 
+            }, 30000); 
+        }
+
+        // İstifadəçinin hər hansı bir hərəkətini izləyirik
+        window.addEventListener('mousemove', resetTimer);
+        window.addEventListener('mousedown', resetTimer);
+        window.addEventListener('keypress', resetTimer);
+        window.addEventListener('touchstart', resetTimer);
+        window.addEventListener('scroll', resetTimer);
+
+        // İlk işə düşəndə taymeri başladırıq
+        resetTimer();
     }
 });
