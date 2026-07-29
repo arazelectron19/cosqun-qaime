@@ -16,6 +16,8 @@ const archiveSearchInput = document.getElementById('archive-search-input');
 const startDateInput = document.getElementById('start-date');
 const endDateInput = document.getElementById('end-date');
 const totalSumSpan = document.getElementById('total-sum');
+const totalYolSpan = document.getElementById('total-yol-sum');
+const totalXidmetSpan = document.getElementById('total-xidmet-sum');
 
 let allArchivedInvoices = [];
 
@@ -121,10 +123,14 @@ function renderArchiveUI(list) {
     archiveListContainer.innerHTML = '';
 
     let totalSum = 0;
+    let totalYolSum = 0;      // <--- Yeni yol xərci dəyişəni
+    let totalXidmetSum = 0;   // <--- Yeni xidmət haqqı dəyişəni
 
     if (list.length === 0) {
         archiveListContainer.innerHTML = '<p style="font-size:13px; color:#9ca3af; text-align:center; padding: 20px;">Seçilmiş tarix aralığında arxivdə heç bir qaimə tapılmadı.</p>';
         if (totalSumSpan) totalSumSpan.innerText = '0.00';
+        if (totalYolSpan) totalYolSpan.innerText = '0.00';
+        if (totalXidmetSpan) totalXidmetSpan.innerText = '0.00';
         return;
     }
 
@@ -137,10 +143,20 @@ function renderArchiveUI(list) {
             data.items.forEach(item => {
                 const price = parseFloat(item.price) || 0;
                 const qty = parseFloat(item.quantity || item.count || 1) || 1;
-                invoiceTotal += price * qty;
+                const itemTotal = price * qty;
+                invoiceTotal += itemTotal;
+
+                // Məhsul adlarına görə yoxlama və ayrı toplama
+                const itemNameLower = (item.name || item.title || '').trim().toLowerCase();
+                if (itemNameLower === 'yol xerci') {
+                    totalYolSum += itemTotal;
+                } else if (itemNameLower === 'xidmet haqqi') {
+                    totalXidmetSum += itemTotal;
+                }
             });
         }
         totalSum += invoiceTotal;
+
 
         const div = document.createElement('div');
         div.className = 'archive-item';
@@ -261,9 +277,14 @@ function renderArchiveUI(list) {
 
         archiveListContainer.appendChild(div);
     });
-
-    if (totalSumSpan) {
+if (totalSumSpan) {
         totalSumSpan.innerText = totalSum.toFixed(2);
+    }
+    if (totalYolSpan) {
+        totalYolSpan.innerText = totalYolSum.toFixed(2);
+    }
+    if (totalXidmetSpan) {
+        totalXidmetSpan.innerText = totalXidmetSum.toFixed(2);
     }
 }
 
