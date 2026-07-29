@@ -13,8 +13,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!pinScreen) return;
 
-    // Səhifə yenilənəndə dərhal PİN ekranını göstərmək üçün 
-    // yoxlama məlumatını təmizləyirik (və ya localStorage yoxlamasını ləğv edirik)
+    // Əgər əvvəlcədən daxil olubsa, PİN ekranını birbaşa gizlət
+    if (localStorage.getItem("isUnlocked") === "true") {
+        pinScreen.style.display = 'none';
+        return;
+    }
+
+    // Əks halda PİN ekranını göstər
     pinScreen.style.display = 'flex';
     pinScreen.style.opacity = '1';
 
@@ -63,7 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function verifyPin() {
         if (enteredPin === correctPin) {
-            // Doğru olduqda sadəcə pəncərəni bağlayırıq (yaddaşda saxlamırıq ki, səhifə yenilənəndə yenidən istəsin)
+            // PİN düzgündür, yaddaşa yazırıq ki, bir daha istəməsin
+            localStorage.setItem("isUnlocked", "true");
+
             pinScreen.style.opacity = '0';
             pinScreen.style.transition = 'opacity 0.3s ease';
             setTimeout(() => {
