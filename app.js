@@ -38,7 +38,7 @@ function showNotification(message, type = 'success') {
         color: '#ffffff',
         fontWeight: '600',             
         fontSize: '15px',              
-        zIndex: '10000',
+        zIndex: '9999999', // BURANI 9999999 ET (Bütün modallardan da öndə olsun)
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
         transition: 'all 0.3s ease',
         opacity: '0',
@@ -165,7 +165,7 @@ async function loadGlobalProductsAndTemplates() {
                     const option = document.createElement('option');
                     option.value = docSnapshot.id;
                     // Başında ulduz ilə görünsün ki, xüsusi olduğu bilinsin
-                    option.textContent = `⭐ ${tData.templateName || tData.name}`;
+                    option.textContent = `⚡ ${tData.templateName || tData.name}`;
                     option.dataset.items = JSON.stringify(tData.items);
                     selectTemplate.appendChild(option);
                 });
@@ -935,7 +935,6 @@ if (modalSaveBtn && templateModal) {
         }
 
         try {
-            // 1. Anbarda olan məhsulları (`base_products`) Firebase-dən yoxlamaq üçün çəkirik
             const productsSnapshot = await getDocs(collection(db, "base_products"));
             const warehouseProducts = [];
             productsSnapshot.forEach(docSnap => {
@@ -945,29 +944,26 @@ if (modalSaveBtn && templateModal) {
                 }
             });
 
-            // 2. Qaimədəki məhsulların anbarda olub-olmadığını yoxlayırıq
             let missingProducts = [];
             invoiceItems.forEach(item => {
                 const itemName = (item.name || '').toLowerCase().trim();
-                // Əgər məhsul adı boş deyilsə və anbarda yoxdursa
                 if (itemName && !warehouseProducts.includes(itemName)) {
                     missingProducts.push(item.name);
                 }
             });
 
-            // Əgər anbarda olmayan məhsul tapıldısa, prosesi dayandır və xəta ver
             if (missingProducts.length > 0) {
                 showNotification(`Anbarda olmayan məhsul var: ${missingProducts.join(', ')}`, "error");
                 return;
             }
 
-            // 3. Hər şey qaydasındadırsa, "special_templates" kolleksiyasına yazırıq
+            // BURADA MƏHSULLARIN SAYINI (qty) QƏTİ OLARAK GÖTÜRÜRÜK
             const templateData = {
                 templateName: templateNameVal,
                 items: invoiceItems.map(item => ({
                     name: item.name,
-                    qty: item.qty || 1,
-                    price: item.price || 0
+                    qty: parseInt(item.qty) || 1, // Sayın düzgün rəqəm kimi getməsi
+                    price: parseFloat(item.price) || 0
                 }))
             };
 
@@ -976,7 +972,6 @@ if (modalSaveBtn && templateModal) {
             showNotification("Şablon uğurla xüsusi şablonlara yadda saxlandı!", "success");
             templateModal.style.display = 'none';
             
-            // Xüsusi şablonlar siyahısını dərhal yeniləyirik
             if (typeof loadSpecialTemplates === 'function') {
                 loadSpecialTemplates(); 
             }
@@ -986,7 +981,6 @@ if (modalSaveBtn && templateModal) {
         }
     });
 }
-
 // Xüsusi şablonları Firebase-dən çəkib aşağıdakı bölmədə göstərən funksiya
 async function loadSpecialTemplates() {
     const specialContainer = document.getElementById('special-templates-container'); // HTML-də aşağıdakı bölmənin ID-si
@@ -1048,3 +1042,4 @@ async function loadSpecialTemplates() {
         console.error("Xüsusi şablonları çəkmə xətası:", e);
     }
 }
+
