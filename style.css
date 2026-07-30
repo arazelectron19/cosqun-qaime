@@ -101,9 +101,9 @@ body {
 
 .btnNewInvoice,
 #btn-new-invoice {
-    background-color: #0b132b;
-    border: 1px solid #10b981;
-    color: #10b981;
+    background-color: #10b981 !important; /* İçi dolu yaşıl rəng */
+    border: 1px solid #10b981 !important;
+    color: #ffffff !important; /* Yazı ağ rəng */
     padding: 10px 18px;
     border-radius: 6px;
     font-weight: bold;
@@ -112,23 +112,20 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: none !important; /* Hover keçid effektini ləğv edir */
     -webkit-tap-highlight-color: transparent;
-    /* Mobil toxunuş kölgəsini silir */
 }
 
-/* Hover effekti YALNIZ siçan (PC) istifadə edənlər üçün işləsin */
+/* Hover zamanı rəngin dəyişməməsi üçün eyni rəngdə saxlayırıq */
 @media (hover: hover) {
-
     .btnNewInvoice:hover,
     #btn-new-invoice:hover {
-        background-color: #10b981;
+        background-color: #10b981 !important;
         color: #ffffff !important;
-        border-color: #10b981;
+        border-color: #10b981 !important;
     }
 }
 
-/* JavaScript ilə 500ms aktiv edəcəyimiz sinif */
 .btnNewInvoice.clicked {
     background-color: #10b981 !important;
     color: #ffffff !important;
@@ -137,35 +134,30 @@ body {
 
 /* Gözləməyə Al / Yenilə düyməsi */
 .btn-yellow {
-    background-color: #1c1510;
-    border: 1px solid #b45309;
-    color: #d97706;
+    background-color: #d97706 !important; /* Daha açıq və canlı narıncı/sarı tonu */
+    border: 1px solid #d97706 !important;
+    color: #ffffff !important; /* Yazı ağ rəng */
     min-width: 145px !important;
-    /* Kompüterdə də tam sığması üçün eni 145px etdik */
     white-space: nowrap !important;
-    /* Yazının aşağı sətirə keçməsini tamamilə bloklayır */
     text-align: center;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    [cite: 17] -webkit-tap-highlight-color: transparent;
-    [cite: 17]
+    transition: none !important; /* Hover keçid effektini ləğv edir */
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Hover effekti YALNIZ siçan (PC) istifadə edənlər üçün işləsin */
+/* Hover zamanı rəngin dəyişməməsi üçün eyni rəngdə saxlayırıq */
 @media (hover: hover) {
     .btn-yellow:hover {
-        background-color: #d97706;
-        color: #ffffff;
-        border-color: #d97706;
+        background-color: #d97706 !important;
+        color: #ffffff !important;
+        border-color: #d97706 !important;
     }
 }
 
-/* JavaScript ilə telefonda 1 saniyəlik yandırıb söndürəcəyimiz class */
 .btn-yellow.clicked {
     background-color: #d97706 !important;
     color: #ffffff !important;
     border-color: #d97706 !important;
 }
-
 /* ==========================================================================
    İRİ CƏDVƏL STRUKTURU
    ========================================================================= */
@@ -345,9 +337,9 @@ body {
 
 .btn-refresh,
 .btn-archive-nav {
-    background-color: #0b132b !important;
-    border: 1px solid #3a506b !important;
-    color: #5bc0be !important;
+    background-color: #10b981 !important; /* İçi dolu firuzəyi rəng */
+    border: 1px solid #10b981 !important;
+    color: #ffffff !important; /* Yazı ağ rəng */
     padding: 6px 12px !important;
     border-radius: 4px !important;
     cursor: pointer !important;
@@ -356,27 +348,24 @@ body {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    transition: background-color 0.2s ease, color 0.2s ease !important;
+    transition: none !important; /* Hover keçidini ləğv edir */
     -webkit-tap-highlight-color: transparent;
-    /* Mobil klik kölgəsini silir */
 }
 
-/* YALNIZ siçan (mouse) istifadə edən cihazlarda (PC) hover işləsin */
+/* Hover və klik zamanı rəng dəyişməməsi üçün bunları eyni rəngdə saxlayırıq */
 @media (hover: hover) {
-
     .btn-refresh:hover,
     .btn-archive-nav:hover {
-        background-color: #5bc0be !important;
-        color: #0b132b !important;
-        border-color: #5bc0be !important;
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        border-color: #10b981 !important;
     }
 }
 
-/* JavaScript ilə 1 saniyəlik yandırıb söndürəcəyimiz class */
 .btn-refresh.clicked {
-    background-color: #5bc0be !important;
-    color: #0b132b !important;
-    border-color: #5bc0be !important;
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    border-color: #10b981 !important;
 }
 
 .waiting-list {
@@ -598,37 +587,35 @@ body {
 
 /* Parametr düyməsinin dizaynı */
 .btn-settings {
-    background-color: #0b132b !important;
+    background-color: #3a506b !important; /* İçi dolu fon rəngi */
     border: 1px solid #3a506b !important;
-    color: #a5b4fc !important;
+    color: #ffffff !important; /* Yazı ağ rəng */
     padding: 6px 12px !important;
     border-radius: 4px !important;
     cursor: pointer !important;
     font-size: 13px !important;
     font-weight: 600 !important;
     text-decoration: none !important;
-    /* Link xəttini silir */
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    transition: background-color 0.15s ease, color 0.15s ease !important;
+    transition: none !important; /* Hover keçidini ləğv edir */
     -webkit-tap-highlight-color: transparent;
 }
 
-/* PC üçün Hover effekti */
+/* Hover zamanı rəngin dəyişməməsi üçün eyni rəngdə saxlayırıq */
 @media (hover: hover) {
     .btn-settings:hover {
         background-color: #3a506b !important;
         color: #ffffff !important;
-        border-color: #5bc0be !important;
+        border-color: #3a506b !important;
     }
 }
 
-/* Klik anında 500ms-lik rəng dəyişməsi class-ı */
 .btn-settings.clicked {
     background-color: #3a506b !important;
     color: #ffffff !important;
-    border-color: #5bc0be !important;
+    border-color: #3a506b !important;
 }
 
 .template-selector-container {
@@ -668,14 +655,13 @@ body {
     border-color: #5bc0be;
 }
 
-/* ==========================================================================
+/* ===================================================
    PAYLAŞ DÜYMƏSİ SƏLİQƏLİ DİZAYNI
-   ========================================================================= */
+   =================================================== */
 .btn-share-style {
-    background-color: #0b132b !important;
+    background-color: #0ea5e9 !important; /* İçi dolu mavi rəng */
     border: 1px solid #0ea5e9 !important;
-    /* Mavi rəng */
-    color: #0ea5e9 !important;
+    color: #ffffff !important; /* Yazı ağ rəng */
     padding: 10px 18px;
     border-radius: 6px;
     font-weight: bold;
@@ -686,10 +672,11 @@ body {
     gap: 8px;
     height: 44px;
     font-size: 15px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: none !important; /* Hover keçid effektini ləğv edir */
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Hover zamanı rəngin dəyişməməsi üçün eyni rəngdə saxlayırıq */
 @media (hover: hover) {
     .btn-share-style:hover {
         background-color: #0ea5e9 !important;
@@ -1011,7 +998,7 @@ body {
 }
 
 .btn-save-template-mini {
-    background-color: #5bc0be !important;
+    background-color: #0ea5e9 !important;
     color: #ffffff !important;
     border: none !important;
     padding: 10px 14px !important;
