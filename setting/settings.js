@@ -28,26 +28,26 @@ function showNotification(message, type = 'success') {
 
     Object.assign(notification.style, {
         position: 'fixed',
-        top: '24px',
-        right: '24px',
-        padding: '22px 40px',
-        borderRadius: '12px',
+        top: '20px',
+        right: '20px',
+        padding: '10px 18px',          // Daha kiçik və yığcam padding
+        borderRadius: '8px',
         color: '#ffffff',
-        fontWeight: '900',
-        fontSize: '22px',
+        fontWeight: '600',             // Şrift qalınlığı normallaşdırıldı
+        fontSize: '14px',              // Şrift ölçüsü kiçildildi
         zIndex: '10000',
-        boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
-        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+        transition: 'all 0.3s ease',
         opacity: '0',
-        transform: 'translateX(100px)'
+        transform: 'translateX(50px)'
     });
 
     if (type === 'success') {
         notification.style.backgroundColor = '#10b981';
-        notification.style.borderLeft = '10px solid #059669';
+        notification.style.borderLeft = '5px solid #059669'; // Sol sərhəd incəldildi
     } else {
         notification.style.backgroundColor = '#ef4444';
-        notification.style.borderLeft = '10px solid #dc2626';
+        notification.style.borderLeft = '5px solid #dc2626'; // Sol sərhəd incəldildi
     }
 
     document.body.appendChild(notification);
@@ -59,9 +59,9 @@ function showNotification(message, type = 'success') {
 
     setTimeout(() => {
         notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100px)';
-        setTimeout(() => notification.remove(), 400);
-    }, 3500);
+        notification.style.transform = 'translateX(50px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

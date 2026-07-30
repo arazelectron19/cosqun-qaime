@@ -20,7 +20,7 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.error("SW qeydiyyat xətası:", err));
 }
 
-// BÖYÜDÜLMÜŞ VƏ OPTİMAL ÖLÇÜLÜ BİLDİRİŞ FUNKSİYASI
+// DAHA DA BÖYÜDÜLMÜŞ BİLDİRİŞ FUNKSİYASI
 function showNotification(message, type = 'success') {
     const oldNotification = document.getElementById('custom-notification');
     if (oldNotification) oldNotification.remove();
@@ -31,15 +31,15 @@ function showNotification(message, type = 'success') {
 
     Object.assign(notification.style, {
         position: 'fixed',
-        top: '20px',
-        right: '20px',
-        padding: '14px 28px',          
-        borderRadius: '8px',
+        top: '25px',
+        right: '25px',
+        padding: '22px 40px',          // Daha geniş padding
+        borderRadius: '12px',
         color: '#ffffff',
-        fontWeight: '600',             
-        fontSize: '15px',              
-        zIndex: '9999999', // BURANI 9999999 ET (Bütün modallardan da öndə olsun)
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        fontWeight: 'bold',            
+        fontSize: '22px',              // Daha böyük şrift ölçüsü
+        zIndex: '9999999', 
+        boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
         transition: 'all 0.3s ease',
         opacity: '0',
         transform: 'translateY(-20px)'
@@ -47,10 +47,10 @@ function showNotification(message, type = 'success') {
 
     if (type === 'success') {
         notification.style.backgroundColor = '#10b981';
-        notification.style.borderLeft = '6px solid #047857';
+        notification.style.borderLeft = '10px solid #047857'; 
     } else {
         notification.style.backgroundColor = '#ef4444';
-        notification.style.borderLeft = '6px solid #b91c1c';
+        notification.style.borderLeft = '10px solid #b91c1c'; 
     }
 
     document.body.appendChild(notification);
@@ -76,18 +76,25 @@ const selectTemplate = document.getElementById('select-template');
 const dateInput = document.getElementById('invoice-date-input');
 const btnSharePdf = document.getElementById('btn-share-pdf');
 
+// Elementlər bir dəfə burada elan olunur:
+const btnOpenArchiveModal = document.getElementById('btn-open-archive-modal');
+const archiveModal = document.getElementById('archive-modal');
+const archiveModalClose = document.getElementById('archive-modal-close');
+const archiveListContainer = document.getElementById('archive-list-container');
+const archiveSearchInput = document.getElementById('archive-search-input');
+
 let invoiceItems = [{ name: '', qty: 1, price: 0 }];
 let currentActiveDocId = null;
 let dbProductsList = []; 
-let allWaitingInvoices = []; // Bütün gözləyən qaimələri saxlamaq üçün
+let allWaitingInvoices = []; 
+let allArchivedInvoices = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     renderItems();
     fetchWaitingList();
     loadGlobalProductsAndTemplates();
-    setTodayDate(); // Səhifə açılanda bu günün tarixini avtomatik yazır
+    setTodayDate(); 
     
-    // Dropdown-dan seçim klik məntiqi
     const dropdown = document.getElementById('custom-dropdown');
     if (dropdown) {
         dropdown.addEventListener('click', (e) => {
@@ -112,15 +119,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const waitingSearchInput = document.getElementById('waiting-search-input');
-if (waitingSearchInput) {
-    waitingSearchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        const filtered = allWaitingInvoices.filter(item => 
-            item.customerName.toLowerCase().includes(searchTerm)
-        );
-        renderWaitingList(filtered);
-    });
-}
+    if (waitingSearchInput) {
+        waitingSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const filtered = allWaitingInvoices.filter(item => 
+                item.customerName.toLowerCase().includes(searchTerm)
+            );
+            renderWaitingList(filtered);
+        });
+    }
+
+    if (typeof fetchArchiveList === 'function') {
+        fetchArchiveList(); 
+    }
+
+    if (btnOpenArchiveModal && archiveModal) {
+        btnOpenArchiveModal.addEventListener('click', () => {
+            btnOpenArchiveModal.classList.add('clicked');
+            setTimeout(() => btnOpenArchiveModal.classList.remove('clicked'), 300);
+            archiveModal.style.display = 'flex';
+            if (typeof fetchArchiveList === 'function') fetchArchiveList();
+        });
+    }
+
+    if (archiveModalClose && archiveModal) {
+        archiveModalClose.addEventListener('click', () => {
+            archiveModal.style.display = 'none';
+        });
+    }
+
+    if (archiveModal) {
+        archiveModal.addEventListener('click', (e) => {
+            if (e.target === archiveModal) archiveModal.style.display = 'none';
+        });
+    }
+
+    if (archiveSearchInput) {
+        archiveSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const filtered = allArchivedInvoices.filter(item => 
+                item.customerName.toLowerCase().includes(searchTerm)
+            );
+            renderArchiveList(filtered);
+        });
+    }
 });
 
 function setTodayDate() {
@@ -132,20 +174,15 @@ function setTodayDate() {
     }
 }
 
-
-// Firebase-dən həm məhsul siyahısını, həm də hər iki növ şablonu çəkirik
 async function loadGlobalProductsAndTemplates() {
     try {
-        // 1. Məhsulları alaq
         const pSnap = await getDocs(query(collection(db, "base_products"), orderBy("name")));
         dbProductsList = [];
         pSnap.forEach(d => dbProductsList.push(d.data()));
 
-        // 2. Şablonları dropdown-a dolduraq (Həm base_templates, həm də special_templates)
         if (selectTemplate) {
             selectTemplate.innerHTML = '<option value="">-- Şablon seçilməyib --</option>';
 
-            // Adi şablonlar
             const tSnap = await getDocs(collection(db, "base_templates"));
             tSnap.forEach(docSnapshot => {
                 const tData = docSnapshot.data();
@@ -156,15 +193,12 @@ async function loadGlobalProductsAndTemplates() {
                 selectTemplate.appendChild(option);
             });
 
-            // Xüsusi yadda saxlanılan şablonlar (⭐ ulduzlu olanlar)
             const specialSnap = await getDocs(collection(db, "special_templates"));
             if (!specialSnap.empty) {
-                // İstəsəniz ayıran qrup və ya sadəcə əlavə edə bilərsiz
                 specialSnap.forEach(docSnapshot => {
                     const tData = docSnapshot.data();
                     const option = document.createElement('option');
                     option.value = docSnapshot.id;
-                    // Başında ulduz ilə görünsün ki, xüsusi olduğu bilinsin
                     option.textContent = `⚡ ${tData.templateName || tData.name}`;
                     option.dataset.items = JSON.stringify(tData.items);
                     selectTemplate.appendChild(option);
@@ -293,10 +327,11 @@ function fastCalculateTotal() {
     if (totalPriceView) totalPriceView.textContent = total.toFixed(2);
 }
 
-if (btnAddItem) {
-    btnAddItem.addEventListener('click', () => {
-        btnAddItem.classList.add('clicked');
-        setTimeout(() => btnAddItem.classList.remove('clicked'), 250); // btnAddItem (İ hərfi böyük)
+const btnAddItemEl = document.getElementById('btn-add-item');
+if (btnAddItemEl) {
+    btnAddItemEl.addEventListener('click', () => {
+        btnAddItemEl.classList.add('clicked');
+        setTimeout(() => btnAddItemEl.classList.remove('clicked'), 250);
         invoiceItems.push({ name: '', qty: 1, price: 0 });
         renderItems();
     });
@@ -368,7 +403,6 @@ async function fetchWaitingList() {
     }
 }
 
-// Siyahını ekrana çəkən və axtarışı idarə edən funksiya
 function renderWaitingList(list) {
     if (!waitingListContainer) return;
     waitingListContainer.innerHTML = '';
@@ -413,22 +447,21 @@ function renderWaitingList(list) {
             if (btnWaiting) btnWaiting.textContent = 'Yenilə';
         });
 
-        // Tamamla düyməsinin funksionallığı
-const btnComplete = div.querySelector('.btn-complete-waiting');
-btnComplete.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    try {
-        await updateDoc(doc(db, "waiting_invoices", docId), {
-            status: "archived",
-            updatedAt: new Date()
+        const btnComplete = div.querySelector('.btn-complete-waiting');
+        btnComplete.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            try {
+                await updateDoc(doc(db, "waiting_invoices", docId), {
+                    status: "archived",
+                    updatedAt: new Date()
+                });
+                if (currentActiveDocId === docId) resetForm();
+                fetchWaitingList();
+                showNotification("Qaimə uğurla arxivə köçürüldü!", "success");
+            } catch (err) {
+                showNotification("Xəta baş verdi!", "error");
+            }
         });
-        if (currentActiveDocId === docId) resetForm();
-        fetchWaitingList();
-        showNotification("Qaimə uğurla arxivə köçürüldü!", "success");
-    } catch (err) {
-        showNotification("Xəta baş verdi!", "error");
-    }
-});
 
         const btnDelete = div.querySelector('.btn-delete-waiting');
         const actionArea = div.querySelector('.action-area');
@@ -885,8 +918,6 @@ window.setExternalInvoiceData = (name, items) => {
     invoiceItems = items;
 };
 
-
-// Yadda saxla düyməsinin və mərkəzi modalın idarə edilməsi
 const btnSaveTemplateMini = document.getElementById('open-save-template-modal-btn');
 const templateModal = document.getElementById('template-modal');
 const modalTemplateNameInput = document.getElementById('modal-template-name-input');
@@ -914,7 +945,6 @@ if (modalCancelBtn && templateModal) {
     });
 }
 
-// Modal xaricinə kliklədikdə bağlanması
 if (templateModal) {
     templateModal.addEventListener('click', (e) => {
         if (e.target === templateModal) {
@@ -957,12 +987,11 @@ if (modalSaveBtn && templateModal) {
                 return;
             }
 
-            // BURADA MƏHSULLARIN SAYINI (qty) QƏTİ OLARAK GÖTÜRÜRÜK
             const templateData = {
                 templateName: templateNameVal,
                 items: invoiceItems.map(item => ({
                     name: item.name,
-                    qty: parseInt(item.qty) || 1, // Sayın düzgün rəqəm kimi getməsi
+                    qty: parseInt(item.qty) || 1, 
                     price: parseFloat(item.price) || 0
                 }))
             };
@@ -981,9 +1010,9 @@ if (modalSaveBtn && templateModal) {
         }
     });
 }
-// Xüsusi şablonları Firebase-dən çəkib aşağıdakı bölmədə göstərən funksiya
+
 async function loadSpecialTemplates() {
-    const specialContainer = document.getElementById('special-templates-container'); // HTML-də aşağıdakı bölmənin ID-si
+    const specialContainer = document.getElementById('special-templates-container'); 
     if (!specialContainer) return;
 
     try {
@@ -1000,7 +1029,7 @@ async function loadSpecialTemplates() {
             const docId = docSnapshot.id;
 
             const div = document.createElement('div');
-            div.className = 'waiting-item'; // Mövcud dizayn siniflərinə uyğun
+            div.className = 'waiting-item'; 
             div.style.cssText = "background: #111827; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #374151; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;";
             
             div.innerHTML = `
@@ -1014,7 +1043,6 @@ async function loadSpecialTemplates() {
                 </div>
             `;
 
-            // Şablonu seçib qaiməyə yükləmək
             div.querySelector('.btn-edit-special').addEventListener('click', () => {
                 invoiceItems = data.items.map(item => ({
                     name: item.name,
@@ -1025,7 +1053,6 @@ async function loadSpecialTemplates() {
                 showNotification(`"${data.templateName}" şablonu yükləndi!`, "success");
             });
 
-            // Şablonu silmək
             div.querySelector('.btn-delete-special').addEventListener('click', async () => {
                 try {
                     await deleteDoc(doc(db, "special_templates", docId));
@@ -1043,3 +1070,87 @@ async function loadSpecialTemplates() {
     }
 }
 
+// Arxiv qaimələrini Firebase-dən çəkən funksiya
+async function fetchArchiveList() {
+    if (!archiveListContainer) return;
+    archiveListContainer.innerHTML = '<div class="loading-wrapper"><div class="sharp-ring-loader"></div></div>';
+    
+    try {
+        const q = query(
+            collection(db, "waiting_invoices"), 
+            where("status", "==", "archived")
+        );
+        const snap = await getDocs(q);
+        
+        allArchivedInvoices = [];
+        snap.forEach(docSnap => {
+            allArchivedInvoices.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // Tarixə görə sıralama (ən sonuncu yuxarıda)
+        allArchivedInvoices.sort((a, b) => {
+            const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate().getTime() : new Date(a.updatedAt).getTime();
+            const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate().getTime() : new Date(b.updatedAt).getTime();
+            return timeB - timeA;
+        });
+
+        renderArchiveList(allArchivedInvoices);
+    } catch (e) { 
+        console.error("Arxiv yüklənmə xətası:", e);
+        archiveListContainer.innerHTML = '<p style="font-size:12px; color:#ef4444; text-align:center;">Arxivi yükləmək mümkün olmadı.</p>';
+    }
+}
+
+// Arxiv siyahısını ekranda göstərən funksiya
+function renderArchiveList(list) {
+    if (!archiveListContainer) return;
+    archiveListContainer.innerHTML = '';
+
+    if (list.length === 0) {
+        archiveListContainer.innerHTML = '<p style="font-size:12px; color:#9ca3af; text-align:center; padding: 20px;">Qaimə Tapılmadı</p>';
+        return;
+    }
+
+    list.forEach((data) => {
+        const docId = data.id;
+        const formattedDate = formatDate(data.updatedAt);
+
+        const div = document.createElement('div');
+        div.className = 'waiting-item';
+        div.style.cssText = "background: #111827; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #374151; display: flex; justify-content: space-between; align-items: center;";
+        
+        div.innerHTML = `
+            <div style="flex:1;">
+                <strong style="color:#ffffff; font-size: 14px;">${data.customerName}</strong>
+                <span style="display:block; font-size:11px; color:#a5b4fc; margin-top:2px;">${data.items.length} məhsul</span>
+                <span style="display:block; font-size:10px; color:#9ca3af; margin-top:4px;">📅 ${formattedDate}</span>
+            </div>
+            <div style="display:flex; gap: 6px;">
+                <button class="btn-load-archive" style="background:#3b82f6; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;">Seç</button>
+            </div>
+        `;
+
+        // "Seç" düyməsinə kliklədikdə qaiməni əsas ekrana gətirir
+        div.querySelector('.btn-load-archive').addEventListener('click', () => {
+            currentActiveDocId = docId;
+            customerInput.value = data.customerName;
+            invoiceItems = data.items;
+
+            if (dateInput && data.updatedAt) {
+                const dateObj = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt);
+                const offset = dateObj.getTimezoneOffset() * 60000;
+                const localISODate = (new Date(dateObj - offset)).toISOString().slice(0, 10);
+                dateInput.value = localISODate;
+            }
+
+            renderItems();
+            if (btnWaiting) btnWaiting.textContent = 'Yenilə';
+            
+            // Modalı bağlayırıq
+            if (archiveModal) archiveModal.style.display = 'none';
+            showNotification("Arxivdən qaimə yükləndi", "success");
+        });
+
+        archiveListContainer.appendChild(div);
+    });
+}
