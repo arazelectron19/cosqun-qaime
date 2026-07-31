@@ -24,26 +24,29 @@ let allArchivedInvoices = [];
 document.addEventListener('DOMContentLoaded', () => {
     const fpConfig = {
         dateFormat: "d.m.Y",
-        defaultDate: "today",
         onChange: function() {
             filterAndRender();
         }
     };
 
+    // Bu günkü tarix
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    
+    // 1 ay bundan əvvəlki tarix
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
     if (window.flatpickr) {
+        // Başlanğıc tarixi: 1 ay əvvəl
         window.flatpickr("#start-date", {
             ...fpConfig,
-            defaultDate: `01.${month}.${year}`
+            defaultDate: oneMonthAgo
         });
 
+        // Bitiş tarixi: Bu gün
         window.flatpickr("#end-date", {
             ...fpConfig,
-            defaultDate: `${day}.${month}.${year}`
+            defaultDate: now
         });
     }
 
