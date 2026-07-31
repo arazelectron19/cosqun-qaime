@@ -416,6 +416,12 @@ function renderWaitingList(list) {
         const docId = data.id;
         const formattedDate = formatDate(data.updatedAt);
 
+        // Qaimənin ümumi məbləğ hesablanması
+        let totalAmount = 0;
+        if (data.items && Array.isArray(data.items)) {
+            totalAmount = data.items.reduce((sum, item) => sum + ((item.qty || 0) * (item.price || 0)), 0);
+        }
+
         const div = document.createElement('div');
         div.className = 'waiting-item';
         div.innerHTML = `
@@ -425,7 +431,8 @@ function renderWaitingList(list) {
                 <span style="display:block; font-size:10px; color:#9ca3af; margin-top:4px;">📅 ${formattedDate}</span>
             </div>
             <div class="action-area" style="display:flex; align-items:center; gap: 8px;">
-                <button class="btn-complete-waiting">Tamamla</button>
+                <!-- Tamamla butonunun solunda ümumi məbləğ -->
+                <span style="font-size: 12px; font-weight: 600; color: #5bc0be; background: rgba(91, 192, 190, 0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(91, 192, 190, 0.3); white-space: nowrap;">${totalAmount.toFixed(2)} AZN</span>                <button class="btn-complete-waiting">Tamamla</button>
                 <button class="btn-delete-waiting">Sil</button>
             </div>
         `;
