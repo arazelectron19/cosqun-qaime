@@ -14,23 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pinScreen) return;
 
     const LOCK_DURATION = 30 * 1000; // 30 saniyə (milisaniyə ilə)
-    const lastActiveTime = localStorage.getItem("app_last_active_time");
+    const lastActiveTime = sessionStorage.getItem("app_last_active_time");
     const currentTime = new Date().getTime();
-    const isUnlocked = localStorage.getItem("isUnlocked") === "true";
+    const isUnlocked = sessionStorage.getItem("isUnlocked") === "true";
 
-    // Kilidin açılması lazımdırmı yoxsa PİN ekranı qalmalıdır?
-    // Əgər əvvəl açıq olubsa VƏ son 30 saniyə ərzində aktivlik olubsa (və ya hələ səhifə bağlanmayıbsa)
-    // Lakin siz proqramdan tam çıxıb qayıdanda PİN istəməsini istəyirsinizsə, sessionStorage və ya 'beforeunload' yoxlaması istifadə edirik:
-    const sessionActive = sessionStorage.getItem("session_active");
-
-    if (isUnlocked && sessionActive && lastActiveTime && (currentTime - parseInt(lastActiveTime)) < LOCK_DURATION) {
-        // Hələ 30 saniyə bitməyib və sessiya qırılmayıb
+    // Əgər əvvəl açılıbsa VƏ son 30 saniyə ərzində hərəkətsizlik müddəti bitməyibsə (səhifə yenilənsə belə sessionStorage qaldığı üçün PİN istəməyəcək)
+    if (isUnlocked && lastActiveTime && (currentTime - parseInt(lastActiveTime)) < LOCK_DURATION) {
         pinScreen.style.display = 'none';
         initInactivityTimer();
     } else {
-        // Səhifə bağlanıb, proqramdan çıxılıb və ya 30 saniyədən çox hərəkətsiz qalıb
-        localStorage.removeItem("isUnlocked");
-        sessionStorage.removeItem("session_active");
+        // 30 saniyədən çox hərəkətsiz qalıbsa və ya ilk dəfə açılırsa
+        sessionStorage.removeItem("isUnlocked");
         pinScreen.style.display = 'flex';
         pinScreen.style.opacity = '1';
     }
@@ -80,9 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function verifyPin() {
         if (enteredPin === correctPin) {
-            localStorage.setItem("isUnlocked", "true");
-            sessionStorage.setItem("session_active", "true"); // Sessiyanı aktivləşdiririk
-            localStorage.setItem("app_last_active_time", new Date().getTime().toString());
+            sessionStorage.setItem("isUnlocked", "true");
+            sessionStorage.setItem("app_last_active_time", new Date().getTime().toString());
 
             pinScreen.style.opacity = '0';
             pinScreen.style.transition = 'opacity 0.3s ease';
@@ -104,18 +97,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 30 saniyə hərəkətsizlik və ya səhifədən çıxış taymeri
+    // 30 saniyə hərəkətsizlik taymeri
     function initInactivityTimer() {
         let inactivityTimeout;
 
         function resetTimer() {
             clearTimeout(inactivityTimeout);
             const now = new Date().getTime();
-            localStorage.setItem("app_last_active_time", now.toString());
+            sessionStorage.setItem("app_last_active_time", now.toString());
 
             inactivityTimeout = setTimeout(() => {
-                localStorage.removeItem("isUnlocked");
-                sessionStorage.removeItem("session_active");
+                sessionStorage.removeItem("isUnlocked");
+                sessionStorage.removeItem("app_last_active_time");
                 location.reload(); 
             }, LOCK_DURATION); 
         }
@@ -123,11 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // İstifadəçi hərəkətlərini izləyirik
         ['mousemove', 'mousedown', 'keypress', 'touchstart', 'scroll'].forEach(event => {
             window.addEventListener(event, resetTimer, { passive: true });
-        });
-
-        // Səhifəni və ya proqramı bağlayanda dərhal sessiyanı təmizləyirik ki, yenidən girəndə PİN istəsin
-        window.addEventListener('beforeunload', () => {
-            sessionStorage.removeItem("session_active");
         });
 
         resetTimer();
