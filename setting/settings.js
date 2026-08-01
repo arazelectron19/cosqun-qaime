@@ -327,6 +327,8 @@ if (productForm) {
     });
 }
 
+let pendingTemplateData = null;
+
 if (templateForm) {
     templateForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -345,7 +347,7 @@ if (templateForm) {
             selectedItems.push({
                 name: box.getAttribute('data-name'),
                 price: parseFloat(box.getAttribute('data-price')) || 0,
-                qty: 1
+                qty: 1 // İlkin olaraq 1 götürülür, modalda istifadəçi dəyişə biləcək
             });
         });
 
@@ -354,19 +356,72 @@ if (templateForm) {
             return;
         }
 
-        try {
-            await addDoc(collection(db, "base_templates"), {
-                templateName: tName,
-                items: selectedItems
-            });
-            showNotification("Yeni şablon uğurla yaradıldı!", "success");
-            templateNameInput.value = '';
-            loadSettingsData();
-        } catch (err) {
-            console.error(err);
-            showNotification("Şablon yaradıla bilmədi!", "error");
-        }
+        pendingTemplateData = { name: tName, items: selectedItems };
+        openNewTemplateConfirmationModal(pendingTemplateData);
     });
+}
+
+function openNewTemplateConfirmationModal(data) {
+    const modal = document.getElementById('new-template-modal');
+    const nameInput = document.getElementById('confirm-template-name');
+    const container = document.getElementById('confirm-template-checkboxes');
+
+    if (!modal || !nameInput || !container) return;
+
+    nameInput.value = data.name;
+    container.innerHTML = '';
+
+    data.items.forEach(item => {
+        const label = document.createElement('label');
+        label.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(91, 192, 190, 0.1); border: 1px solid #5bc0be; border-radius: 8px; font-size: 14px; color: #e2e8f0;';
+        
+        label.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; flex: 1;">
+                <input type="checkbox" checked disabled style="accent-color: #5bc0be; width:16px; height:16px;">
+                <span>${item.name}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <input type="number" class="confirm-item-qty" value="${item.qty}" min="1" step="1" style="width: 55px; padding: 4px; text-align: center; background: #090915; border: 1px solid #3d3d6b; color: #fff; border-radius: 4px;">
+                <span style="color: #5bc0be; font-weight: bold;">${item.price.toFixed(2)} AZN</span>
+            </div>
+        `;
+        container.appendChild(label);
+    });
+
+    modal.style.display = 'flex';
+}
+
+window.closeNewTemplateModal = function() {
+    const modal = document.getElementById('new-template-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+window.finalizeNewTemplate = async function() {
+    if (!pendingTemplateData) return;
+
+    const container = document.getElementById('confirm-template-checkboxes');
+    const qtyInputs = container.querySelectorAll('.confirm-item-qty');
+
+    pendingTemplateData.items.forEach((item, index) => {
+        const val = parseFloat(qtyInputs[index].value);
+        item.qty = isNaN(val) || val < 1 ? 1 : val;
+    });
+
+    try {
+        await addDoc(collection(db, "base_templates"), {
+            templateName: pendingTemplateData.name,
+            items: pendingTemplateData.items
+        });
+        
+        showNotification("Yeni şablon uğurla yaradıldı!", "success");
+        closeNewTemplateModal();
+        
+        document.getElementById('template-name').value = '';
+        loadSettingsData();
+    } catch (err) {
+        console.error(err);
+        showNotification("Şablon yaradıla bilmədi!", "error");
+    }
 }
 
 async function fetchBaseTemplates() {
@@ -487,28 +542,33 @@ window.openTemplateModal = async function(tId, currentName) {
         checkboxesContainer.innerHTML = '';
 
         tempDoc.forEach(prod => {
-            const isChecked = currentTemplateItems.some(item => item.name === prod.name);
+           const existingItem = currentTemplateItems.find(item => item.name === prod.name);
+    const isChecked = !!existingItem;
+    const currentQty = existingItem ? (existingItem.qty || 1) : 1;
 
-            const label = document.createElement('label');
-            label.style.display = 'flex';
-            label.style.alignItems = 'center';
-            label.style.justifyContent = 'space-between';
-            label.style.padding = '10px 14px';
-            label.style.background = isChecked ? 'rgba(91, 192, 190, 0.1)' : '#16162a';
-            label.style.border = isChecked ? '1px solid #5bc0be' : '1px solid #2e2e4f';
-            label.style.borderRadius = '8px';
-            label.style.cursor = 'pointer';
-            label.style.fontSize = '14px';
-            label.style.color = '#e2e8f0';
-            label.style.transition = 'all 0.15s ease';
+    const label = document.createElement('label');
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.justifyContent = 'space-between';
+    label.style.padding = '10px 14px';
+    label.style.background = isChecked ? 'rgba(91, 192, 190, 0.1)' : '#16162a';
+    label.style.border = isChecked ? '1px solid #5bc0be' : '1px solid #2e2e4f';
+    label.style.borderRadius = '8px';
+    label.style.cursor = 'pointer';
+    label.style.fontSize = '14px';
+    label.style.color = '#e2e8f0';
+    label.style.transition = 'all 0.15s ease';
 
-            label.innerHTML = `
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <input type="checkbox" value="${prod.id}" data-name="${prod.name}" data-price="${prod.price}" ${isChecked ? 'checked' : ''} style="accent-color: #5bc0be; width:16px; height:16px; cursor:pointer;">
-                    <span>${prod.name}</span>
-                </div>
-                <span style="color: #5bc0be; font-weight: bold;">${prod.price.toFixed(2)} AZN</span>
-            `;
+    label.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px; flex: 1;">
+            <input type="checkbox" value="${prod.id}" data-name="${prod.name}" data-price="${prod.price}" ${isChecked ? 'checked' : ''} style="accent-color: #5bc0be; width:16px; height:16px; cursor:pointer;">
+            <span>${prod.name}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" class="modal-item-qty" value="${currentQty}" min="1" step="1" style="width: 55px; padding: 4px; text-align: center; background: #090915; border: 1px solid #3d3d6b; color: #fff; border-radius: 4px;" onclick="event.stopPropagation()">
+            <span style="color: #5bc0be; font-weight: bold;">${prod.price.toFixed(2)} AZN</span>
+        </div>
+    `;
 
             const cb = label.querySelector('input[type="checkbox"]');
             cb.addEventListener('change', () => {
@@ -743,43 +803,51 @@ window.openSpecialTemplateModal = async function(tId, currentName) {
 
         checkboxesContainer.innerHTML = '';
 
-        tempDoc.forEach(prod => {
-            const isChecked = currentTemplateItems.some(item => item.name === prod.name);
+       tempDoc.forEach(prod => {
+    const existingItem = currentTemplateItems.some(item => item.name === prod.name);
+    // Əgər məhsul şablonda varsa, onun qty dəyərini tapırıq
+    const foundItemData = currentTemplateItems.find(item => item.name === prod.name);
+    const currentQty = foundItemData ? (foundItemData.qty || 1) : 1;
+    
+    const isChecked = !!existingItem;
 
-            const label = document.createElement('label');
-            label.style.display = 'flex';
-            label.style.alignItems = 'center';
-            label.style.justifyContent = 'space-between';
-            label.style.padding = '10px 14px';
-            label.style.background = isChecked ? 'rgba(91, 192, 190, 0.1)' : '#16162a';
-            label.style.border = isChecked ? '1px solid #5bc0be' : '1px solid #2e2e4f';
-            label.style.borderRadius = '8px';
-            label.style.cursor = 'pointer';
-            label.style.fontSize = '14px';
-            label.style.color = '#e2e8f0';
-            label.style.transition = 'all 0.15s ease';
+    const label = document.createElement('label');
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.justifyContent = 'space-between';
+    label.style.padding = '10px 14px';
+    label.style.background = isChecked ? 'rgba(91, 192, 190, 0.1)' : '#16162a';
+    label.style.border = isChecked ? '1px solid #5bc0be' : '1px solid #2e2e4f';
+    label.style.borderRadius = '8px';
+    label.style.cursor = 'pointer';
+    label.style.fontSize = '14px';
+    label.style.color = '#e2e8f0';
+    label.style.transition = 'all 0.15s ease';
 
-            label.innerHTML = `
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <input type="checkbox" value="${prod.id}" data-name="${prod.name}" data-price="${prod.price}" ${isChecked ? 'checked' : ''} style="accent-color: #5bc0be; width:16px; height:16px; cursor:pointer;">
-                    <span>${prod.name}</span>
-                </div>
-                <span style="color: #5bc0be; font-weight: bold;">${prod.price.toFixed(2)} AZN</span>
-            `;
+    label.innerHTML = `
+        <div style="display:flex; align-items:center; gap:12px; flex: 1;">
+            <input type="checkbox" value="${prod.id}" data-name="${prod.name}" data-price="${prod.price}" ${isChecked ? 'checked' : ''} style="accent-color: #5bc0be; width:16px; height:16px; cursor:pointer;">
+            <span>${prod.name}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <input type="number" class="modal-item-qty" value="${currentQty}" min="1" step="1" style="width: 55px; padding: 4px; text-align: center; background: #090915; border: 1px solid #3d3d6b; color: #fff; border-radius: 4px;" onclick="event.stopPropagation()">
+            <span style="color: #5bc0be; font-weight: bold;">${prod.price.toFixed(2)} AZN</span>
+        </div>
+    `;
 
-            const cb = label.querySelector('input[type="checkbox"]');
-            cb.addEventListener('change', () => {
-                if (cb.checked) {
-                    label.style.background = 'rgba(91, 192, 190, 0.1)';
-                    label.style.borderColor = '#5bc0be';
-                } else {
-                    label.style.background = '#16162a';
-                    label.style.borderColor = '#2e2e4f';
-                }
-            });
+    const cb = label.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', () => {
+        if (cb.checked) {
+            label.style.background = 'rgba(91, 192, 190, 0.1)';
+            label.style.borderColor = '#5bc0be';
+        } else {
+            label.style.background = '#16162a';
+            label.style.borderColor = '#2e2e4f';
+        }
+    });
 
-            checkboxesContainer.appendChild(label);
-        });
+    checkboxesContainer.appendChild(label);
+});
 
         // Modalın yadda saxla düyməsinin funksiyasını special_templates üçün yönləndiririk
         window.saveTemplateModalFromModal = async function() {
@@ -794,14 +862,17 @@ window.openSpecialTemplateModal = async function(tId, currentName) {
             const checkedBoxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
             const updatedItems = [];
 
-            checkedBoxes.forEach(box => {
-                updatedItems.push({
-                    name: box.getAttribute('data-name'),
-                    price: parseFloat(box.getAttribute('data-price')) || 0,
-                    qty: 1
-                });
-            });
+           checkedBoxes.forEach(box => {
+    const rowItem = box.closest('label');
+    const qtyInput = rowItem ? rowItem.querySelector('.modal-item-qty') : null;
+    const qty = parseFloat(qtyInput ? qtyInput.value : 1) || 1;
 
+    updatedItems.push({
+        name: box.getAttribute('data-name'),
+        price: parseFloat(box.getAttribute('data-price')) || 0,
+        qty: qty
+    });
+});
             if (updatedItems.length === 0) {
                 showNotification("Şablonda ən azı bir məhsul saxlamalısınız!", "error");
                 return;

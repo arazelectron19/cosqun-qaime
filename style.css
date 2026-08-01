@@ -20,7 +20,7 @@ body {
     align-items: flex-start;
     min-height: 100vh;
     overflow-x: hidden !important; /* Telefon ekranında sağa-sola hərəkəti tam bağlayır */
-    width: 100%;
+    width: 50%;
     box-sizing: border-box;
 }
 
@@ -28,16 +28,17 @@ body {
    BLOKU ENİNƏ 600PX SAXLAYIB DAHA DA YAXINLAŞDIRAN KONTEYNER (ZOOM)
    ========================================================================= */
 .app-container {
-    max-width: 600px !important;
-    /* En sabit 600px qalır */
+    max-width: 550px !important;
     width: 100% !important;
-    margin: 0 auto !important;
+    
+    /* Mərkəzləşdirməni ləğv edib tam sola çəkmək üçün: */
+    margin: 20px !important; 
+    margin-left: 0px !important;
 
-    /* YAXINLAŞDIRMA DƏRƏCƏSİ 1.5-DƏN 1.75-Ə QALXDIRILDI (175% Böyütmə) */
-    zoom: 1.75 !important;
-    -moz-transform: scale(1.75);
-    /* Firefox üçün */
-    -moz-transform-origin: top center;
+    /* Yaxınlaşdırma dərəcəsi */
+    zoom: 1.7 !important;
+    -moz-transform: scale(1.7);
+    -moz-transform-origin: top left; /* Miqyaslanmanın sol yuxarıdankı nöqtədən başlaması üçün */
 }
 
 /* Giriş və İdarəetmə Paneli */
@@ -140,7 +141,7 @@ body {
     background-color: #d97706 !important; /* Daha açıq və canlı narıncı/sarı tonu */
     border: 1px solid #d97706 !important;
     color: #ffffff !important; /* Yazı ağ rəng */
-    min-width: 145px !important;
+    min-width: 14px !important;
     white-space: nowrap !important;
     text-align: center;
     transition: none !important; /* Hover keçid effektini ləğv edir */
@@ -533,7 +534,7 @@ body {
     .btn-yellow,
     .btn-green,
     .btn-share-style {
-        height: 38px !important;
+        height: 30px !important;
         font-size: 10px !important;
         padding: 2px 4px !important;
         flex: 1 !important;
@@ -724,7 +725,7 @@ body {
     background-color: #0ea5e9 !important; /* İçi dolu mavi rəng */
     border: 1px solid #0ea5e9 !important;
     color: #ffffff !important; /* Yazı ağ rəng */
-    padding: 10px 18px;
+    padding: 20px 18px;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
@@ -1491,4 +1492,44 @@ body {
 /* Əgər arxiv boş olarsa, çıxan "Qaimə Tapılmadı" yazısının ölçüsü */
 #archive-list-container p {
     font-size: 14px !important;
+}
+
+/* Şablon siyahısındakı məhsul sətri */
+.template-product-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #0b132b;
+    border: 1px solid #3a506b;
+    padding: 8px 12px;
+    border-radius: 6px;
+    gap: 10px;
+}
+
+.template-product-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.template-product-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Şablon seçimindəki miqdar inputu */
+.template-item-qty {
+    width: 55px !important;
+    height: 32px !important;
+    text-align: center !important;
+    background-color: #1c2541 !important;
+    border: 1px solid #3a506b !important;
+    color: #ffffff !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    outline: none;
 }
