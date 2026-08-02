@@ -138,8 +138,8 @@ body {
 
 /* Gözləməyə Al / Yenilə düyməsi */
 .btn-yellow {
-    background-color: #d97706 !important; /* Daha açıq və canlı narıncı/sarı tonu */
-    border: 1px solid #d97706 !important;
+    background-color: #ff6a00 !important; /* Daha açıq və canlı narıncı/sarı tonu */
+    border: 1px solid #ff6a00 !important;
     color: #ffffff !important; /* Yazı ağ rəng */
     min-width: 14px !important;
     white-space: nowrap !important;
@@ -148,20 +148,6 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Hover zamanı rəngin dəyişməməsi üçün eyni rəngdə saxlayırıq */
-@media (hover: hover) {
-    .btn-yellow:hover {
-        background-color: #d97706 !important;
-        color: #ffffff !important;
-        border-color: #d97706 !important;
-    }
-}
-
-.btn-yellow.clicked {
-    background-color: #d97706 !important;
-    color: #ffffff !important;
-    border-color: #d97706 !important;
-}
 /* ==========================================================================
    İRİ CƏDVƏL STRUKTURU
    ========================================================================= */
@@ -531,8 +517,8 @@ body {
     .btn-blue,
     .btnNewInvoice,
     #btn-new-invoice,
-    .btn-yellow,
     .btn-green,
+    .btn-yellow,
     .btn-share-style {
         height: 30px !important;
         font-size: 10px !important;
@@ -542,7 +528,6 @@ body {
         box-sizing: border-box !important;
         white-space: nowrap !important;
     }
-
     .invoice-table-wrapper {
         width: 100% !important;
         overflow-x: auto !important;
@@ -725,7 +710,7 @@ body {
     background-color: #0ea5e9 !important; /* İçi dolu mavi rəng */
     border: 1px solid #0ea5e9 !important;
     color: #ffffff !important; /* Yazı ağ rəng */
-    padding: 20px 18px;
+    padding: 20px 10px;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;

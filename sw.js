@@ -1,13 +1,14 @@
-const CACHE_NAME = 'qaime-v2';
+const CACHE_NAME = 'qaime-v3';
 const ASSETS = [
   '/cosqun-qaime/',
   '/cosqun-qaime/index.html',
+  '/cosqun-qaime/offline.html', // Oflayn səhifəni də keşə əlavə edirik
   '/cosqun-qaime/style.css',
   '/cosqun-qaime/app.js',
   '/cosqun-qaime/firebase.js',
   '/cosqun-qaime/manifest.json',
-  '/cosqun-qaime/favicon.png', // <--- Səhv fayl adı düzəldildi
-  '/cosqun-qaime/html2pdf.bundle.min.js' // PDF kitabxanası artıq CDN-dən deyil, yerli fayldan yüklənir və keşlənir
+  '/cosqun-qaime/favicon.png',
+  '/cosqun-qaime/html2pdf.bundle.min.js'
 ];
 
 // Quraşdırılma zamanı əsas faylları keşə yığır
@@ -42,7 +43,8 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request).catch(() => {
         if (event.request.mode === 'navigate') {
-          return caches.match('/cosqun.qaime/index.html');
+          // İnternet olmayanda birbaşa bizim dizayn etdiyimiz oflayn səhifəni göstərir
+          return caches.match('/cosqun-qaime/offline.html');
         }
       });
     })

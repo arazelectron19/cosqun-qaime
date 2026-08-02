@@ -215,6 +215,7 @@ if (btnNewInvoice) {
         btnNewInvoice.classList.add('clicked');
         setTimeout(() => btnNewInvoice.classList.remove('clicked'), 500);
         resetForm(); 
+        showNotification("Siyahı sıfırlandı", "success");
     });
 }
 
