@@ -1470,8 +1470,10 @@ body {
 
 /* "Seç" düyməsinin ölçüsü və rahat toxunulması üçün */
 #archive-list-container .btn-load-archive {
-    font-size: 14px !important;
-    padding: 8px 16px !important;
+    font-size: 16px !important;     /* Şrifti bir qədər də böyüdürük */
+    padding: 10px 22px !important;    /* Daxili boşluqları artıraraq düyməni iriləşdiririk */
+    border-radius: 8px !important;
+    font-weight: 700 !important;
 }
 
 /* Əgər arxiv boş olarsa, çıxan "Qaimə Tapılmadı" yazısının ölçüsü */
