@@ -408,6 +408,12 @@ async function fetchWaitingList() {
 
 function renderWaitingList(list) {
     if (!waitingListContainer) return;
+    
+    const panelHeaderTitle = document.querySelector('.waiting-panel .panel-header h3');
+    if (panelHeaderTitle) {
+        panelHeaderTitle.textContent = `Gözləyən Qaimələr (${list.length})`;
+    }
+    
     waitingListContainer.innerHTML = '';
 
     if(list.length === 0) {
