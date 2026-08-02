@@ -263,10 +263,12 @@ function renderItems() {
         });
 
         qtyInput.addEventListener('input', (e) => {
-            item.qty = parseInt(e.target.value) || 0;
-            rowTotalDisplay.textContent = (item.qty * item.price).toFixed(2) + " AZN";
-            fastCalculateTotal();
-        });
+    item.qty = parseInt(e.target.value) || 0;
+    // Bəzi yerlərdə quantity kimi də oxuna biləcəyi üçün hər ikisini eyni vaxtda təyin edək:
+    item.quantity = item.qty; 
+    rowTotalDisplay.textContent = (item.qty * item.price).toFixed(2) + " AZN";
+    fastCalculateTotal();
+});
 
         priceInput.addEventListener('input', (e) => {
             item.price = parseFloat(e.target.value) || 0;
@@ -650,18 +652,21 @@ function buildInvoiceHTML() {
     let grandTotal = 0;
 
     invoiceItems.forEach((item, index) => {
-        const rowTotal = (item.qty || 1) * (item.price || 0);
-        grandTotal += rowTotal;
-        tableRowsHTML += `
-            <tr style="border-bottom: 1px solid #e5e7eb; page-break-inside: avoid; break-inside: avoid;">
-                <td style="padding: 10px 6px; font-size: 13px; color: #374151;">${index + 1}</td>
-                <td style="padding: 10px 6px; font-size: 13px; font-weight: 700; color: #111111; word-break: break-word;">${item.name || ''}</td>
-                <td style="padding: 10px 6px; font-size: 13px; text-align: center; color: #374151;">${item.qty}</td>
-                <td style="padding: 10px 6px; font-size: 13px; text-align: right; color: #374151;">${item.price.toFixed(2)}</td>
-                <td style="padding: 10px 6px; font-size: 13px; text-align: right; font-weight: 700; color: #111111;">${rowTotal.toFixed(2)}</td>
-            </tr>
-        `;
-    });
+    const qVal = parseInt(item.qty !== undefined ? item.qty : (item.quantity || 1)) || 1;
+    const pVal = parseFloat(item.price) || 0;
+    const rowTotal = qVal * pVal;
+    grandTotal += rowTotal;
+
+    tableRowsHTML += `
+        <tr style="border-bottom: 1px solid #e5e7eb; page-break-inside: avoid; break-inside: avoid;">
+            <td style="padding: 10px 6px; font-size: 13px; color: #374151;">${index + 1}</td>
+            <td style="padding: 10px 6px; font-size: 13px; font-weight: 700; color: #111111; word-break: break-word;">${item.name || ''}</td>
+            <td style="padding: 10px 6px; font-size: 13px; text-align: center; color: #374151;">${qVal}</td>
+            <td style="padding: 10px 6px; font-size: 13px; text-align: right; color: #374151;">${pVal.toFixed(2)}</td>
+            <td style="padding: 10px 6px; font-size: 13px; text-align: right; font-weight: 700; color: #111111;">${rowTotal.toFixed(2)}</td>
+        </tr>
+    `;
+});
 
     const html = `
         <div style="width: 794px; box-sizing: border-box; padding: 40px 45px; background-color: #ffffff; font-family: 'Noto Sans', Arial, sans-serif; color: #111111;">
